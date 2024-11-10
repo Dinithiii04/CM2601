@@ -1,20 +1,21 @@
 package org.example.cm2601.Controller;
 
 import org.example.cm2601.model.User;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public class UserDatabase {
-    private static final String FILE_PATH = "users.txt";
+    private static final String FILE_PATH = "users.json";
     private Map<String, User> users = new HashMap<>();
 
     public UserDatabase() {
         loadUsers();
     }
 
-    // Add a method to check if a user exists
     public boolean isUserExists(String username) {
         return users.containsKey(username);
     }
@@ -38,19 +39,41 @@ public class UserDatabase {
     }
 
     private void loadUsers() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
-            users = (Map<String, User>) ois.readObject();
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+            StringBuilder jsonContent = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonContent.append(line);
+            }
+
+            JSONArray jsonArray = new JSONArray(jsonContent.toString());
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String username = jsonObject.getString("username");
+                String password = jsonObject.getString("password");
+
+                // Assuming User has a constructor that takes username and password
+                User user = new User(username, password);
+                users.put(username, user);
+            }
         } catch (FileNotFoundException e) {
             System.out.println("User database file not found. Starting with an empty database.");
-            //handle no database ( only signup option)
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             System.out.println("Error loading user database: " + e.getMessage());
         }
     }
 
     private void saveUsers() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
-            oos.writeObject(users);
+        JSONArray jsonArray = new JSONArray();
+        for (User user : users.values()) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("username", user.getUsername());
+            jsonObject.put("password", user.getPassword());
+            jsonArray.put(jsonObject);
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            writer.write(jsonArray.toString(4)); // Pretty print with 4 spaces indentation
         } catch (IOException e) {
             System.out.println("Error saving user database: " + e.getMessage());
         }

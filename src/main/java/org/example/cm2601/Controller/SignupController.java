@@ -22,7 +22,7 @@ public class SignupController {
         String password = scanner.nextLine();
 
         // Check if user already exists
-        if (userDatabase.getUser(username) != null) {
+        if (userDatabase.isUserExists(username)) {
             System.out.println("Username already taken. Please try a different one.");
             return null;
         }
