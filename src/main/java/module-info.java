@@ -3,6 +3,7 @@ module org.example.cm2601 {
     requires javafx.fxml;
     requires org.json;
     requires java.base;
+    requires com.google.gson;
 
 
     opens org.example.cm2601 to javafx.fxml;
