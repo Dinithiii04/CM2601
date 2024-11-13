@@ -61,70 +61,85 @@ public class CategorizeNews {
     }
 
     private String classifyTextWithHuggingFace(String text) {
-        try {
-            URL url = new URL(HUGGING_FACE_API_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + HUGGING_FACE_API_KEY);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
+        int maxRetries = 5;
+        int retryDelayMs = 50000; // 20 seconds
 
-            // Prepare the input string for Hugging Face API
-            String jsonInputString = "{\"inputs\": \"" + text.replace("\"", "\\\"") + "\"}";
+        for (int attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                URL url = new URL(HUGGING_FACE_API_URL);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Authorization", "Bearer " + HUGGING_FACE_API_KEY);
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
 
-            // Send POST request with text to Hugging Face API
-            try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes("utf-8");
-                os.write(input, 0, input.length);
-            }
+                // Prepare the input string for Hugging Face API
+                String jsonInputString = "{\"inputs\": \"" + text.replace("\"", "\\\"") + "\"}";
 
-            int responseCode = conn.getResponseCode();
-            if (responseCode != 200) {
-                BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "utf-8"));
-                StringBuilder errorResponse = new StringBuilder();
-                String errorLine;
-                while ((errorLine = errorReader.readLine()) != null) {
-                    errorResponse.append(errorLine.trim());
+                // Send POST request with text to Hugging Face API
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes("utf-8");
+                    os.write(input, 0, input.length);
                 }
-                return "Unknown";
-            }
 
-            // Read and parse the response
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
-            StringBuilder response = new StringBuilder();
-            String responseLine;
-            while ((responseLine = br.readLine()) != null) {
-                response.append(responseLine.trim());
-            }
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    // Read and parse the response
+                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
+                    StringBuilder response = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
 
-            JsonElement jsonResponse = JsonParser.parseString(response.toString());
-            if (jsonResponse.isJsonArray()) {
-                JsonArray outerArray = jsonResponse.getAsJsonArray();
-                if (outerArray.size() > 0 && outerArray.get(0).isJsonArray()) {
-                    JsonArray innerArray = outerArray.get(0).getAsJsonArray();
-                    String bestLabel = "Unknown";
-                    float bestScore = -1.0f;
+                    JsonElement jsonResponse = JsonParser.parseString(response.toString());
+                    if (jsonResponse.isJsonArray()) {
+                        JsonArray outerArray = jsonResponse.getAsJsonArray();
+                        if (outerArray.size() > 0 && outerArray.get(0).isJsonArray()) {
+                            JsonArray innerArray = outerArray.get(0).getAsJsonArray();
+                            String bestLabel = "Unknown";
+                            float bestScore = -1.0f;
 
-                    for (JsonElement element : innerArray) {
-                        if (element.isJsonObject()) {
-                            JsonObject result = element.getAsJsonObject();
-                            String label = result.get("label").getAsString();
-                            float score = result.get("score").getAsFloat();
+                            for (JsonElement element : innerArray) {
+                                if (element.isJsonObject()) {
+                                    JsonObject result = element.getAsJsonObject();
+                                    String label = result.get("label").getAsString();
+                                    float score = result.get("score").getAsFloat();
 
-                            if (score > bestScore) {
-                                bestScore = score;
-                                bestLabel = label;
+                                    if (score > bestScore) {
+                                        bestScore = score;
+                                        bestLabel = label;
+                                    }
+                                }
                             }
+                            return bestLabel;
                         }
                     }
-                    return bestLabel;
-                }
-            }
-            return "Unknown";
+                    return "Unknown";
+                } else {
+                    // Handle loading error response
+                    BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "utf-8"));
+                    StringBuilder errorResponse = new StringBuilder();
+                    String errorLine;
+                    while ((errorLine = errorReader.readLine()) != null) {
+                        errorResponse.append(errorLine.trim());
+                    }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Unknown";
+                    if (errorResponse.toString().contains("currently loading")) {
+                        System.out.println("Model loading, retrying in " + (retryDelayMs / 1000) + " seconds...");
+                        Thread.sleep(retryDelayMs);
+                        continue; // retry after delay
+                    }
+                    return "Unknown";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Unknown";
+            }
         }
+
+        System.out.println("Max retries reached. Model might be unavailable.");
+        return "Unknown";
     }
+
 }

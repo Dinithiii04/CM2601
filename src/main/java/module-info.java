@@ -6,6 +6,7 @@ module org.example.cm2601 {
     requires com.google.gson;
 
 
+
     opens org.example.cm2601 to javafx.fxml;
     exports org.example.cm2601;
     exports org.example.cm2601.Controller;
