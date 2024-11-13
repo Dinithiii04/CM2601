@@ -5,9 +5,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.BufferedReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -15,8 +17,11 @@ public class CategorizeNews {
 
     private static final String HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Yueh-Huan/news-category-classification-distilbert";
     private static final String HUGGING_FACE_API_KEY = "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";
+    private static final String OUTPUT_FILE_PATH = "categorized_news.json";
 
-    public void categorizeNews(JsonArray articles) {
+    public void categorizeAndSaveNews(JsonArray articles) {
+        JsonArray categorizedArticles = new JsonArray();
+
         for (int i = 0; i < articles.size(); i++) {
             JsonObject article = articles.get(i).getAsJsonObject();
             String title = article.get("title").getAsString();
@@ -25,13 +30,26 @@ public class CategorizeNews {
 
             if (!content.isEmpty()) {
                 String category = classifyTextWithHuggingFace(content);
-                System.out.println("Categorised using NLP: " + category);
-                System.out.println("Title: " + title);
-                System.out.println("Content: " + content);
-                System.out.println("Url:" + url);
 
-                System.out.println();
+                JsonObject categorizedArticle = new JsonObject();
+                categorizedArticle.addProperty("title", title);
+                categorizedArticle.addProperty("content", content);
+                categorizedArticle.addProperty("url", url);
+                categorizedArticle.addProperty("category", category);
+
+                categorizedArticles.add(categorizedArticle);
             }
+        }
+
+        saveToFile(categorizedArticles);
+    }
+
+    private void saveToFile(JsonArray categorizedArticles) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH))) {
+            writer.write(categorizedArticles.toString());
+            System.out.println("Categorized articles saved to " + OUTPUT_FILE_PATH);
+        } catch (Exception e) {
+            System.out.println("Error saving categorized news: " + e.getMessage());
         }
     }
 

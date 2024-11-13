@@ -1,6 +1,5 @@
 package org.example.cm2601.Controller;
 
-import org.example.cm2601.model.NewsArticle;
 import org.example.cm2601.model.User;
 import com.google.gson.JsonArray;
 
@@ -30,7 +29,7 @@ public class HomeController {
 
         while (isRunning) {
             System.out.println("\n=== Welcome to Your Personalized News Feed, " + user.getUsername() + " ===");
-            System.out.println("1. View News");
+            System.out.println("1. Fetch and Save News");
             System.out.println("2. Add Category to Preferences");
             System.out.println("3. View Reading History");
             System.out.println("4. Logout");
@@ -40,7 +39,7 @@ public class HomeController {
 
             switch (option) {
                 case 1:
-                    displayNews(user);
+                    saveNewsToFile(user);
                     break;
                 case 2:
                     addPreference(user);
@@ -58,14 +57,14 @@ public class HomeController {
         }
     }
 
-    private void displayNews(User user) {
+    private void saveNewsToFile(User user) {
         List<String> preferences = user.getPreferences().isEmpty() ? null : List.copyOf(user.getPreferences());
 
-        System.out.println("Fetching articles...");
+        System.out.println("Fetching and saving articles...");
         JsonArray articlesJsonArray = fetchNews.fetchNews();
 
         if (articlesJsonArray != null) {
-            categorizeNews.categorizeNews(articlesJsonArray); // This will print categorized articles to console.
+            categorizeNews.categorizeAndSaveNews(articlesJsonArray); // Save categorized articles to a file.
         } else {
             System.out.println("No articles available. Try adding preferences.");
         }
