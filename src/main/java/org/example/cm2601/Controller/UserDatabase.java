@@ -39,11 +39,23 @@ public class UserDatabase {
     }
 
     private void loadUsers() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+        File file = new File(FILE_PATH);
+        if (!file.exists()) {
+            System.out.println("User database file not found. Starting with an empty database.");
+            return; // No file to load, so start with an empty user map
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             StringBuilder jsonContent = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 jsonContent.append(line);
+            }
+
+            // If the file is empty, initialize an empty JSON array
+            if (jsonContent.length() == 0) {
+                System.out.println("User database file is empty. Initializing an empty user list.");
+                return;
             }
 
             JSONArray jsonArray = new JSONArray(jsonContent.toString());
@@ -54,11 +66,18 @@ public class UserDatabase {
 
                 // Assuming User has a constructor that takes username and password
                 User user = new User(username, password);
+
+                // Load preferences if available
+                JSONArray preferencesArray = jsonObject.optJSONArray("preferences");
+                if (preferencesArray != null) {
+                    for (int j = 0; j < preferencesArray.length(); j++) {
+                        user.addPreference(preferencesArray.getString(j));
+                    }
+                }
+
                 users.put(username, user);
             }
-        } catch (FileNotFoundException e) {
-            System.out.println("User database file not found. Starting with an empty database.");
-        } catch (IOException e) {
+        } catch (IOException | org.json.JSONException e) {
             System.out.println("Error loading user database: " + e.getMessage());
         }
     }
@@ -69,6 +88,11 @@ public class UserDatabase {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("username", user.getUsername());
             jsonObject.put("password", user.getPassword());
+
+            // Add preferences to JSON object
+            JSONArray preferencesArray = new JSONArray(user.getPreferences());
+            jsonObject.put("preferences", preferencesArray);
+
             jsonArray.put(jsonObject);
         }
 

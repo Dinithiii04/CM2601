@@ -9,14 +9,14 @@ import java.util.Set;
 public class User implements Serializable {
     private String username;
     private String password;
-    private List<String> readingHistory; // Store article IDs of read articles
-    private Set<String> preferences;     // Unique set of preferred categories
+    private List<String> readingHistory;
+    private Set<String> preferences;
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
         this.readingHistory = new ArrayList<>();
-        this.preferences = new HashSet<>();
+        this.preferences = new HashSet<>();  // Initialize with no preferences
     }
 
     public String getUsername() {
@@ -27,29 +27,24 @@ public class User implements Serializable {
         return password;
     }
 
-    // Get user's reading history
     public List<String> getReadingHistory() {
         return new ArrayList<>(readingHistory);
     }
 
-    // Add article ID to reading history
     public void addReadingHistory(String articleId) {
         if (!readingHistory.contains(articleId)) {
             this.readingHistory.add(articleId);
         }
     }
 
-    // Get user's preferred categories
     public Set<String> getPreferences() {
         return new HashSet<>(preferences);
     }
 
-    // Add a preference category for the user
     public void addPreference(String category) {
         this.preferences.add(category);
     }
 
-    // To display user details
     @Override
     public String toString() {
         return "User{" +
