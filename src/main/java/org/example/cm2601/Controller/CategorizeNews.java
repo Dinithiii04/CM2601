@@ -5,13 +5,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.io.BufferedWriter;
 import java.io.OutputStream;
-import java.io.BufferedReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Scanner;
 
 public class CategorizeNews {
 
@@ -46,6 +48,8 @@ public class CategorizeNews {
         // Save the categorized articles to the JSON file
         if (categorizedArticles.size() > 0) {
             saveToFile(categorizedArticles);
+            // Display titles and allow user to select one
+            showNewsTitlesAndSelect(categorizedArticles);
         } else {
             System.out.println("No news articles to save.");
         }
@@ -57,6 +61,39 @@ public class CategorizeNews {
             writer.write(categorizedArticles.toString());
         } catch (Exception e) {
             System.out.println("Error saving categorized news: " + e.getMessage());
+        }
+    }
+
+    private void showNewsTitlesAndSelect(JsonArray categorizedArticles) {
+        // Show news titles
+        System.out.println(" \n -------------------------------------");
+        System.out.println("Fetched and Categorized News Titles:");
+        System.out.println("------------------------------------- \n");
+        for (int i = 0; i < categorizedArticles.size(); i++) {
+            JsonObject article = categorizedArticles.get(i).getAsJsonObject();
+            String title = article.get("title").getAsString();
+            System.out.println((i + 1) + ". " + title);
+        }
+
+        // Ask user to select a news title
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the number of the news title you want to view: ");
+        int choice = scanner.nextInt();
+
+        if (choice >= 1 && choice <= categorizedArticles.size()) {
+            JsonObject selectedArticle = categorizedArticles.get(choice - 1).getAsJsonObject();
+            String title = selectedArticle.get("title").getAsString();
+            String description = selectedArticle.get("description").getAsString();
+            String url = selectedArticle.get("url").getAsString();
+            String category = selectedArticle.get("category").getAsString();
+
+            // Display selected news details
+            System.out.println("\nYou selected: " + title);
+            System.out.println("Description: " + description);
+            System.out.println("URL: " + url);
+            System.out.println("Category: " + category);
+        } else {
+            System.out.println("Invalid choice.");
         }
     }
 
@@ -134,12 +171,25 @@ public class CategorizeNews {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                return "Unknown";
             }
         }
-
-        System.out.println("Max retries reached. Model might be unavailable.");
         return "Unknown";
     }
 
+    public static JsonArray loadFromFile() {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(OUTPUT_FILE_PATH));
+            StringBuilder jsonContent = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonContent.append(line);
+            }
+            reader.close();
+            JsonArray jsonArray = JsonParser.parseString(jsonContent.toString()).getAsJsonArray();
+            return jsonArray;
+        } catch (Exception e) {
+            System.out.println("Error reading from file: " + e.getMessage());
+            return null;
+        }
+    }
 }

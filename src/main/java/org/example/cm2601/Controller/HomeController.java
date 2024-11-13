@@ -32,9 +32,9 @@ public class HomeController {
             System.out.println("1. Fetch and Save News");
             System.out.println("2. Add Category to Preferences");
             System.out.println("3. View Reading History");
-            System.out.println("4. Logout");
+            System.out.println("4. Logout \n");
 
-            System.out.print("Choose an option: ");
+            System.out.println(" Choose an option: ");
             int option = scanner.nextInt();
 
             switch (option) {
@@ -60,12 +60,12 @@ public class HomeController {
     private void saveNewsToFile(User user) {
         List<String> preferences = user.getPreferences().isEmpty() ? null : List.copyOf(user.getPreferences());
 
-        System.out.println("Fetching and saving articles...");
+        System.out.println(" \n Fetching and saving articles...  ");
         JsonArray articlesJsonArray = fetchNews.fetchNews();
 
         if (articlesJsonArray != null) {
             categorizeNews.categorizeAndSaveNews(articlesJsonArray); // Save each categorized article to a file individually.
-            System.out.println("News saved into the file successfully."); // Success message moved here
+            System.out.println("News saved into the file successfully. \n" ); // Success message moved here
         } else {
             System.out.println("No articles available. Try adding preferences.");
         }
@@ -73,7 +73,7 @@ public class HomeController {
 
     private void addPreference(User user) {
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter a new category to add to your preferences: ");
+        System.out.print("\n Enter a new category to add to your preferences: ");
         String category = scanner.nextLine().trim();
         user.addPreference(category);
         System.out.println("Added " + category + " to your preferences.");
