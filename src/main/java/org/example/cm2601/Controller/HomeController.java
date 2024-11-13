@@ -64,7 +64,8 @@ public class HomeController {
         JsonArray articlesJsonArray = fetchNews.fetchNews();
 
         if (articlesJsonArray != null) {
-            categorizeNews.categorizeAndSaveNews(articlesJsonArray); // Save categorized articles to a file.
+            categorizeNews.categorizeAndSaveNews(articlesJsonArray); // Save each categorized article to a file individually.
+            System.out.println("News saved into the file successfully."); // Success message moved here
         } else {
             System.out.println("No articles available. Try adding preferences.");
         }

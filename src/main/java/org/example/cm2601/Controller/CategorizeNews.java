@@ -25,15 +25,17 @@ public class CategorizeNews {
         for (int i = 0; i < articles.size(); i++) {
             JsonObject article = articles.get(i).getAsJsonObject();
             String title = article.get("title").getAsString();
-            String content = article.has("content") && !article.get("content").isJsonNull() ? article.get("content").getAsString() : "";
+            String description = article.has("description") && !article.get("description").isJsonNull() ? article.get("description").getAsString() : "";
             String url = article.get("url").getAsString();
 
-            if (!content.isEmpty()) {
-                String category = classifyTextWithHuggingFace(content);
+            if (!description.isEmpty()) {
+                // Classify article based on its description
+                String category = classifyTextWithHuggingFace(description);
 
+                // Prepare the categorized article as per required JSON structure
                 JsonObject categorizedArticle = new JsonObject();
                 categorizedArticle.addProperty("title", title);
-                categorizedArticle.addProperty("content", content);
+                categorizedArticle.addProperty("description", description); // use "description" instead of "content"
                 categorizedArticle.addProperty("url", url);
                 categorizedArticle.addProperty("category", category);
 
@@ -41,13 +43,18 @@ public class CategorizeNews {
             }
         }
 
-        saveToFile(categorizedArticles);
+        // Save the categorized articles to the JSON file
+        if (categorizedArticles.size() > 0) {
+            saveToFile(categorizedArticles);
+        } else {
+            System.out.println("No news articles to save.");
+        }
     }
 
     private void saveToFile(JsonArray categorizedArticles) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH))) {
+            // Write the categorized articles to the JSON file
             writer.write(categorizedArticles.toString());
-            System.out.println("Categorized articles saved to " + OUTPUT_FILE_PATH);
         } catch (Exception e) {
             System.out.println("Error saving categorized news: " + e.getMessage());
         }
@@ -62,8 +69,10 @@ public class CategorizeNews {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
+            // Prepare the input string for Hugging Face API
             String jsonInputString = "{\"inputs\": \"" + text.replace("\"", "\\\"") + "\"}";
 
+            // Send POST request with text to Hugging Face API
             try (OutputStream os = conn.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes("utf-8");
                 os.write(input, 0, input.length);
@@ -80,6 +89,7 @@ public class CategorizeNews {
                 return "Unknown";
             }
 
+            // Read and parse the response
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
             StringBuilder response = new StringBuilder();
             String responseLine;

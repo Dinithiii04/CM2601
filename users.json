@@ -10,6 +10,11 @@
         "username": "iro"
     },
     {
+        "password": "bubu123",
+        "preferences": [],
+        "username": "bubu"
+    },
+    {
         "password": "rami123",
         "preferences": [],
         "username": "ramuthu"
@@ -23,5 +28,10 @@
         "password": "dini123",
         "preferences": [],
         "username": "dinithi"
+    },
+    {
+        "password": "rosa123",
+        "preferences": [],
+        "username": "rosa"
     }
 ]
