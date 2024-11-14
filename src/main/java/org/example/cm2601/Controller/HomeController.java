@@ -1,6 +1,7 @@
 package org.example.cm2601.Controller;
 
 import org.example.cm2601.model.User;
+import org.example.cm2601.model.UserPreferences;
 import com.google.gson.JsonArray;
 
 import java.util.List;
@@ -39,10 +40,10 @@ public class HomeController {
 
             switch (option) {
                 case 1:
-                    saveNewsToFile(user);
+                    saveNewsToFile(user);  // Make sure the user is passed correctly
                     break;
                 case 2:
-                    addPreference(user);
+                    addPreference(user);   // Update preferences for the correct user
                     break;
                 case 3:
                     viewReadingHistory(user);
@@ -58,8 +59,7 @@ public class HomeController {
     }
 
     private void saveNewsToFile(User user) {
-        List<String> preferences = user.getPreferences().isEmpty() ? null : List.copyOf(user.getPreferences());
-
+        // Make sure user preferences are updated before saving news
         System.out.println(" \n Fetching and saving articles...  ");
         JsonArray articlesJsonArray = fetchNews.fetchNews();
 
@@ -69,13 +69,19 @@ public class HomeController {
         } else {
             System.out.println("No articles available. Try adding preferences.");
         }
+
+        // After saving the news, update preferences for the logged-in user
+        UserPreferences.savePreferences(user.getUsername(), user.getPassword(), "sports");  // Ensure category is correctly passed here
     }
 
     private void addPreference(User user) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("\n Enter a new category to add to your preferences: ");
         String category = scanner.nextLine().trim();
-        user.addPreference(category);
+        user.addPreference(category); // Add category to the user’s preferences
+
+        // Save the updated preferences in the file
+        UserPreferences.savePreferences(user.getUsername(), user.getPassword(), category);
         System.out.println("Added " + category + " to your preferences.");
     }
 

@@ -1,19 +1,21 @@
 package org.example.cm2601.Controller;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
-import java.io.BufferedWriter;
 import java.io.OutputStream;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
+import org.example.cm2601.model.UserPreferences;
 
 public class CategorizeNews {
 
@@ -21,6 +23,7 @@ public class CategorizeNews {
     private static final String HUGGING_FACE_API_KEY = "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";
     private static final String OUTPUT_FILE_PATH = "categorized_news.json";
 
+    // Method to categorize and save news articles
     public void categorizeAndSaveNews(JsonArray articles) {
         JsonArray categorizedArticles = new JsonArray();
 
@@ -31,41 +34,55 @@ public class CategorizeNews {
             String url = article.get("url").getAsString();
 
             if (!description.isEmpty()) {
-                // Classify article based on its description
                 String category = classifyTextWithHuggingFace(description);
 
-                // Prepare the categorized article as per required JSON structure
-                JsonObject categorizedArticle = new JsonObject();
-                categorizedArticle.addProperty("title", title);
-                categorizedArticle.addProperty("description", description); // use "description" instead of "content"
-                categorizedArticle.addProperty("url", url);
-                categorizedArticle.addProperty("category", category);
+                // Only proceed if category is valid
+                if (!"Unknown".equals(category)) {
+                    JsonObject categorizedArticle = new JsonObject();
+                    categorizedArticle.addProperty("title", title);
+                    categorizedArticle.addProperty("description", description);
+                    categorizedArticle.addProperty("url", url);
+                    categorizedArticle.addProperty("category", category);
 
-                categorizedArticles.add(categorizedArticle);
+                    categorizedArticles.add(categorizedArticle);
+                }
             }
         }
 
-        // Save the categorized articles to the JSON file
         if (categorizedArticles.size() > 0) {
             saveToFile(categorizedArticles);
-            // Display titles and allow user to select one
             showNewsTitlesAndSelect(categorizedArticles);
         } else {
-            System.out.println("No news articles to save.");
+            System.out.println("No valid news articles to save.");
         }
     }
 
+
+    // Method to save categorized news to a file
     private void saveToFile(JsonArray categorizedArticles) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH))) {
-            // Write the categorized articles to the JSON file
-            writer.write(categorizedArticles.toString());
-        } catch (Exception e) {
+            JsonObject json = new JsonObject();
+            json.add("articles", categorizedArticles);
+            writer.write(json.toString());
+        } catch (IOException e) {
             System.out.println("Error saving categorized news: " + e.getMessage());
         }
     }
 
+    // Method to load saved news articles from a file
+    public JsonArray loadFromFile() {
+        JsonArray articles = new JsonArray();
+        try (BufferedReader reader = new BufferedReader(new FileReader(OUTPUT_FILE_PATH))) {
+            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+            articles = json.getAsJsonArray("articles");
+        } catch (IOException e) {
+            System.out.println("Error loading saved news: " + e.getMessage());
+        }
+        return articles;
+    }
+
+    // Method to show categorized news titles and allow user selection
     private void showNewsTitlesAndSelect(JsonArray categorizedArticles) {
-        // Show news titles
         System.out.println(" \n -------------------------------------");
         System.out.println("Fetched and Categorized News Titles:");
         System.out.println("------------------------------------- \n");
@@ -75,7 +92,6 @@ public class CategorizeNews {
             System.out.println((i + 1) + ". " + title);
         }
 
-        // Ask user to select a news title
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter the number of the news title you want to view: ");
         int choice = scanner.nextInt();
@@ -87,19 +103,24 @@ public class CategorizeNews {
             String url = selectedArticle.get("url").getAsString();
             String category = selectedArticle.get("category").getAsString();
 
-            // Display selected news details
             System.out.println("\nYou selected: " + title);
             System.out.println("Description: " + description);
             System.out.println("URL: " + url);
             System.out.println("Category: " + category);
+
+            // Update user preferences with the selected category
+            UserPreferences.savePreferences("dinithi", "dini123", category);
+
+            System.out.println("Your preference has been updated with the category: " + category);
         } else {
             System.out.println("Invalid choice.");
         }
     }
 
+    // Method to classify text using the Hugging Face API
     private String classifyTextWithHuggingFace(String text) {
         int maxRetries = 5;
-        int retryDelayMs = 50000; // 20 seconds
+        int retryDelayMs = 5000;
 
         for (int attempt = 0; attempt < maxRetries; attempt++) {
             try {
@@ -110,10 +131,8 @@ public class CategorizeNews {
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);
 
-                // Prepare the input string for Hugging Face API
                 String jsonInputString = "{\"inputs\": \"" + text.replace("\"", "\\\"") + "\"}";
 
-                // Send POST request with text to Hugging Face API
                 try (OutputStream os = conn.getOutputStream()) {
                     byte[] input = jsonInputString.getBytes("utf-8");
                     os.write(input, 0, input.length);
@@ -121,7 +140,6 @@ public class CategorizeNews {
 
                 int responseCode = conn.getResponseCode();
                 if (responseCode == 200) {
-                    // Read and parse the response
                     BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
                     StringBuilder response = new StringBuilder();
                     String responseLine;
@@ -154,7 +172,6 @@ public class CategorizeNews {
                     }
                     return "Unknown";
                 } else {
-                    // Handle loading error response
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "utf-8"));
                     StringBuilder errorResponse = new StringBuilder();
                     String errorLine;
@@ -165,7 +182,7 @@ public class CategorizeNews {
                     if (errorResponse.toString().contains("currently loading")) {
                         System.out.println("Model loading, retrying in " + (retryDelayMs / 1000) + " seconds...");
                         Thread.sleep(retryDelayMs);
-                        continue; // retry after delay
+                        continue;
                     }
                     return "Unknown";
                 }
@@ -174,22 +191,5 @@ public class CategorizeNews {
             }
         }
         return "Unknown";
-    }
-
-    public static JsonArray loadFromFile() {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(OUTPUT_FILE_PATH));
-            StringBuilder jsonContent = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                jsonContent.append(line);
-            }
-            reader.close();
-            JsonArray jsonArray = JsonParser.parseString(jsonContent.toString()).getAsJsonArray();
-            return jsonArray;
-        } catch (Exception e) {
-            System.out.println("Error reading from file: " + e.getMessage());
-            return null;
-        }
     }
 }

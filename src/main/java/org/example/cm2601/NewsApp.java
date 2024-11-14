@@ -2,12 +2,14 @@ package org.example.cm2601;
 
 import org.example.cm2601.Controller.*;
 import org.example.cm2601.model.User;
+import org.example.cm2601.model.UserPreferences;
 import com.google.gson.JsonArray;
 
 import java.util.Scanner;
 
 public class NewsApp {
     public static void main(String[] args) {
+        // Create necessary objects for user management, fetching, categorizing news, and handling home navigation
         UserDatabase userDatabase = new UserDatabase();
 
         SignupController signupController = new SignupController(userDatabase);
@@ -21,13 +23,17 @@ public class NewsApp {
         boolean isRunning = true;
 
         while (isRunning) {
+            // Display menu
             System.out.println("\n=== Personalized News Recommendation System ===");
             System.out.println("1. Login");
             System.out.println("2. Signup");
+            System.out.println("3. Fetch and Categorize News");
+            System.out.println("4. View Saved News Titles");
             System.out.println("5. Exit");
             System.out.print("Select an option: ");
 
             int option = scanner.nextInt();
+            scanner.nextLine();  // Consume the newline character after the integer input
 
             switch (option) {
                 case 1: // Login and navigate to home
@@ -52,7 +58,15 @@ public class NewsApp {
                     }
                     break;
                 case 4: // View saved news titles
-                    showSavedNewsTitles();
+                    JsonArray savedArticles = categorizeNews.loadFromFile();
+                    if (savedArticles != null && savedArticles.size() > 0) {
+                        System.out.println("Saved News Titles:");
+                        for (int i = 0; i < savedArticles.size(); i++) {
+                            System.out.println((i + 1) + ". " + savedArticles.get(i).getAsJsonObject().get("title").getAsString());
+                        }
+                    } else {
+                        System.out.println("No saved articles available.");
+                    }
                     break;
                 case 5: // Exit application
                     System.out.println("Exiting the application. Goodbye!");
@@ -62,41 +76,7 @@ public class NewsApp {
                     System.out.println("Invalid option. Please select 1, 2, 3, 4, or 5.");
             }
         }
-    }
 
-    private static void showSavedNewsTitles() {
-        try {
-            JsonArray savedArticles = CategorizeNews.loadFromFile();
-
-            if (savedArticles != null && savedArticles.size() > 0) {
-                System.out.println("\nFetched and Categorized News Titles:");
-                for (int i = 0; i < savedArticles.size(); i++) {
-                    String title = savedArticles.get(i).getAsJsonObject().get("title").getAsString();
-                    System.out.println((i + 1) + ". " + title);
-                }
-
-                Scanner scanner = new Scanner(System.in);
-                System.out.print("Enter the number of the news title you want to view: ");
-                int choice = scanner.nextInt();
-
-                if (choice >= 1 && choice <= savedArticles.size()) {
-                    String title = savedArticles.get(choice - 1).getAsJsonObject().get("title").getAsString();
-                    String description = savedArticles.get(choice - 1).getAsJsonObject().get("description").getAsString();
-                    String url = savedArticles.get(choice - 1).getAsJsonObject().get("url").getAsString();
-                    String category = savedArticles.get(choice - 1).getAsJsonObject().get("category").getAsString();
-
-                    System.out.println("\nYou selected: " + title);
-                    System.out.println("Description: " + description);
-                    System.out.println("URL: " + url);
-                    System.out.println("Category: " + category);
-                } else {
-                    System.out.println("Invalid choice.");
-                }
-            } else {
-                System.out.println("No saved news articles available.");
-            }
-        } catch (Exception e) {
-            System.out.println("Error loading saved news: " + e.getMessage());
-        }
+        scanner.close();
     }
 }

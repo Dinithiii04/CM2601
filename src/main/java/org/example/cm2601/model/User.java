@@ -1,24 +1,22 @@
 package org.example.cm2601.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-public class User implements Serializable {
+public class User {
     private String username;
     private String password;
+    private List<String> preferences;
     private List<String> readingHistory;
-    private Set<String> preferences;
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+        this.preferences = new ArrayList<>();
         this.readingHistory = new ArrayList<>();
-        this.preferences = new HashSet<>();  // Initialize with no preferences
     }
 
+    // Getters
     public String getUsername() {
         return username;
     }
@@ -27,30 +25,22 @@ public class User implements Serializable {
         return password;
     }
 
-    public List<String> getReadingHistory() {
-        return new ArrayList<>(readingHistory);
+    public List<String> getPreferences() {
+        return preferences;
     }
 
-    public void addReadingHistory(String articleId) {
-        if (!readingHistory.contains(articleId)) {
-            this.readingHistory.add(articleId);
+    public List<String> getReadingHistory() {
+        return readingHistory;
+    }
+
+    // Methods to update preferences
+    public void addPreference(String category) {
+        if (!preferences.contains(category)) {
+            preferences.add(category);
         }
     }
 
-    public Set<String> getPreferences() {
-        return new HashSet<>(preferences);
-    }
-
-    public void addPreference(String category) {
-        this.preferences.add(category);
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "username='" + username + '\'' +
-                ", readingHistory=" + readingHistory +
-                ", preferences=" + preferences +
-                '}';
+    public void addToReadingHistory(String articleTitle) {
+        readingHistory.add(articleTitle);
     }
 }
