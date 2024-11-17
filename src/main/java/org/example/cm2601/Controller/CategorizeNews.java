@@ -32,32 +32,38 @@ public class CategorizeNews {
         for (int i = 0; i < articles.size(); i++) {
             JsonObject article = articles.get(i).getAsJsonObject();
             String title = article.get("title").getAsString();
-            String description = article.has("description") && !article.get("description").isJsonNull() ? article.get("description").getAsString() : "";
+            String description = article.has("description") && !article.get("description").isJsonNull()
+                    ? article.get("description").getAsString()
+                    : "";
             String url = article.get("url").getAsString();
 
             if (!description.isEmpty()) {
-                String category = classifyTextWithHuggingFace(description);
+                // Get category and score
+                JsonObject classificationResult = classifyTextWithHuggingFace(description);
+                String category = classificationResult.get("category").getAsString();
+                float score = classificationResult.get("score").getAsFloat();
 
-                // Only proceed if category is valid
                 if (!"Unknown".equals(category)) {
                     JsonObject categorizedArticle = new JsonObject();
                     categorizedArticle.addProperty("title", title);
                     categorizedArticle.addProperty("description", description);
                     categorizedArticle.addProperty("url", url);
                     categorizedArticle.addProperty("category", category);
+                    categorizedArticle.addProperty("score", score); // Add score to JSON
 
                     categorizedArticles.add(categorizedArticle);
                 }
             }
         }
 
-        if (!categorizedArticles.isEmpty() ) {
+        if (!categorizedArticles.isEmpty()) {
             saveToFile(categorizedArticles);
             showNewsTitlesAndSelect(categorizedArticles);
         } else {
             System.out.println("No valid news articles to save.");
         }
     }
+
 
 
     // Method to save categorized news to a file
@@ -118,15 +124,14 @@ public class CategorizeNews {
             System.out.println("Category: " + category);
 
             // Update user preferences with the selected category
-            UserPreferences.savePreferences(CurrentUser.getInstance().getUsername(), category);
-            System.out.println("Your preference has been updated with the category: " + category);
+            UserPreferences.savePreferences(CurrentUser.getInstance().getUsername(), category, selectedArticle.get("score").getAsFloat());
         } else {
             System.out.println("Invalid choice.");
         }
     }
 
     // Method to classify text using the Hugging Face API
-    private String classifyTextWithHuggingFace(String text) {
+    private JsonObject classifyTextWithHuggingFace(String text) {
         int maxRetries = 5;
         int retryDelayMs = 5000;
 
@@ -160,6 +165,7 @@ public class CategorizeNews {
                         JsonArray outerArray = jsonResponse.getAsJsonArray();
                         if (outerArray.size() > 0 && outerArray.get(0).isJsonArray()) {
                             JsonArray innerArray = outerArray.get(0).getAsJsonArray();
+
                             String bestLabel = "Unknown";
                             float bestScore = -1.0f;
 
@@ -175,10 +181,13 @@ public class CategorizeNews {
                                     }
                                 }
                             }
-                            return bestLabel;
+
+                            JsonObject result = new JsonObject();
+                            result.addProperty("category", bestLabel);
+                            result.addProperty("score", bestScore); // Return both category and score
+                            return result;
                         }
                     }
-                    return "Unknown";
                 } else {
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "utf-8"));
                     StringBuilder errorResponse = new StringBuilder();
@@ -192,12 +201,15 @@ public class CategorizeNews {
                         Thread.sleep(retryDelayMs);
                         continue;
                     }
-                    return "Unknown";
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        return "Unknown";
+
+        JsonObject result = new JsonObject();
+        result.addProperty("category", "Unknown");
+        result.addProperty("score", 0.0f); // Default score for unknown categories
+        return result;
     }
 }
