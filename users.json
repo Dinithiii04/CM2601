@@ -1,1 +1,1 @@
-[{"password":"iro123","preferences":["POLITICS"],"username":"iro"},{"password":"indi123","preferences":["TECH"],"username":"indika"},{"password":"dudu123","preferences":[],"username":"dudu"},{"password":"dini123","preferences":["BUSINESS","WELLNESS"],"username":"dinithi"},{"password":"rami123","preferences":["GREEN"],"username":"rami"},{"password":"kiki123","preferences":["WORLD NEWS"],"username":"kiki"}]
+[{"password":"dini123","preferences":[{"WELLNESS":2},{"BUSINESS":1}],"username":"dini"}]
