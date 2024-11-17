@@ -75,15 +75,11 @@ public class HomeController {
         Scanner scanner = new Scanner(System.in);
         System.out.print("\n Enter a new category to add to your preferences: ");
         String category = scanner.nextLine().trim();
-
-        // Here, you could fetch a score (e.g., from the user's history, or a predefined value)
-        float score = 1.0f;  // For now, you can assume a default score of 1.0f, or adjust based on logic
-
         user.addPreference(category); // Add category to the user’s preferences
 
-        // Save the updated preferences (now with score) in the file
-        UserPreferences.savePreferences(user.getUsername(), category, score);
-        System.out.println("Added " + category + " with score " + score + " to your preferences.");
+        // Save the updated preferences in the file
+        UserPreferences.savePreferences(user.getUsername(), category);
+        System.out.println("Added " + category + " to your preferences.");
     }
 
     private void viewReadingHistory(User user) {

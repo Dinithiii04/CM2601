@@ -8,67 +8,22 @@ public class UserPreferences {
     private static final String USERS_FILE = "users.json";  // Ensure only this file is used
 
     // Method to save or update user preferences in the JSON file
-    public static void savePreferences(String username, String category, float score) {
-        String filePath = "users.json"; // Ensure this is the correct path for your users file
-        JsonArray usersArray = new JsonArray();
+    public static void savePreferences(String username, String category) {
+        List<JsonObject> allUsers = loadUsers();  // Load existing users from the file
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            JsonElement root = JsonParser.parseReader(reader);
+        // Find user by username
+        JsonObject userJson = findUser(allUsers, username);
 
-            // Ensure we're dealing with a JSON array
-            if (root.isJsonArray()) {
-                usersArray = root.getAsJsonArray();
-            } else {
-                System.out.println("Error: Expected a JSON array in the file.");
-                return;
-            }
-        } catch (IOException e) {
-            System.out.println("No existing user preferences found or error reading file.");
+
+        // Add or update the category in the preferences for the correct user
+        JsonArray preferencesArray = userJson.getAsJsonArray("preferences");
+        if (!containsCategory(preferencesArray, category)) {
+            preferencesArray.add(new JsonPrimitive(category));  // Add the new category
         }
 
-        // Flag to check if the user was found
-        boolean userFound = false;
-
-        // Loop through the users array to find the matching user
-        for (JsonElement userElement : usersArray) {
-            JsonObject userObject = userElement.getAsJsonObject();
-            String existingUsername = userObject.get("username").getAsString();
-
-            // Check if this is the user we are looking for
-            if (existingUsername.equals(username)) {
-                JsonArray preferences = userObject.getAsJsonArray("preferences");
-                preferences.add(category);  // Add new category to preferences
-                userObject.add("preferences", preferences);  // Update preferences field
-                userObject.addProperty("score", score);  // Add the score for the user
-
-                userFound = true;  // Set the flag to true as we found the user
-                break;  // Exit loop once user is found
-            }
-        }
-
-        // If the user wasn't found, create a new user entry with the given data
-        if (!userFound) {
-            JsonObject newUser = new JsonObject();
-            newUser.addProperty("username", username);
-            JsonArray newPreferences = new JsonArray();
-            newPreferences.add(category);
-            newUser.add("preferences", newPreferences);
-            newUser.addProperty("score", score);  // Add the score for the new user
-
-            usersArray.add(newUser);  // Add new user to the array
-        }
-
-        // Save the updated JSON array back to the file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            writer.write(usersArray.toString());
-            System.out.println("User preferences updated successfully.");
-        } catch (IOException e) {
-            System.out.println("Error saving user preferences: " + e.getMessage());
-        }
+        // Save all users back to the JSON file
+        saveUsers(allUsers);
     }
-
-
-
 
     // Helper method to find a user by username
     private static JsonObject findUser(List<JsonObject> users, String username) {
