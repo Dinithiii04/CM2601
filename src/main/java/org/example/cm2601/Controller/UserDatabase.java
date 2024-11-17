@@ -58,6 +58,7 @@ public class UserDatabase {
                 return;
             }
 
+            // Parse the entire JSON array
             JSONArray jsonArray = new JSONArray(jsonContent.toString());
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -71,16 +72,22 @@ public class UserDatabase {
                 JSONArray preferencesArray = jsonObject.optJSONArray("preferences");
                 if (preferencesArray != null) {
                     for (int j = 0; j < preferencesArray.length(); j++) {
-                        user.addPreference(preferencesArray.getString(j));
+                        JSONObject preference = preferencesArray.getJSONObject(j);
+                        String category = preference.getString("category");
+
+                        // Add the preference to the user object (assuming addPreference accepts category and count)
+                        user.addPreference(category);
                     }
                 }
 
+                // Add user to the map
                 users.put(username, user);
             }
         } catch (IOException | org.json.JSONException e) {
             System.out.println("Error loading user database: " + e.getMessage());
         }
     }
+
 
     private void saveUsers() {
         JSONArray jsonArray = new JSONArray();
