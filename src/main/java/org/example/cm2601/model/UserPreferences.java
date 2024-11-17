@@ -17,9 +17,7 @@ public class UserPreferences {
 
         // Add or update the category in the preferences for the correct user
         JsonArray preferencesArray = userJson.getAsJsonArray("preferences");
-        if (!containsCategory(preferencesArray, category)) {
-            preferencesArray.add(new JsonPrimitive(category));  // Add the new category
-        }
+        updateCategory(preferencesArray, category);
 
         // Save all users back to the JSON file
         saveUsers(allUsers);
@@ -36,14 +34,24 @@ public class UserPreferences {
     }
 
     // Helper method to check if a category already exists in the preferences
-    private static boolean containsCategory(JsonArray preferences, String category) {
+    // Helper method to update or add a category with its count
+    private static void updateCategory(JsonArray preferences, String category) {
         for (JsonElement element : preferences) {
-            if (element.getAsString().equals(category)) {
-                return true;  // Return true if the category is already present
+            JsonObject preference = element.getAsJsonObject();
+            if (preference.get("category").getAsString().equals(category)) {
+                // Increment the count if the category exists
+                int currentCount = preference.get("count").getAsInt();
+                preference.addProperty("count", currentCount + 1);
+                return;
             }
         }
-        return false;  // Return false if the category is not present
+        // Add a new category if it doesn't exist
+        JsonObject newPreference = new JsonObject();
+        newPreference.addProperty("category", category);
+        newPreference.addProperty("count", 1); // Initialize with a count of 1
+        preferences.add(newPreference);
     }
+
 
     // Load users from the JSON file (users.json)
     private static List<JsonObject> loadUsers() {
