@@ -98,7 +98,8 @@ public class CategorizeNews {
         for (int i = 0; i < categorizedArticles.size(); i++) {
             JsonObject article = categorizedArticles.get(i).getAsJsonObject();
             String title = article.get("title").getAsString();
-            System.out.println((i + 1) + ". " + title);
+            String category = article.get("category").getAsString();
+            System.out.println((i + 1) + ". " + title + "-" + category);
         }
 
         Scanner scanner = new Scanner(System.in);
