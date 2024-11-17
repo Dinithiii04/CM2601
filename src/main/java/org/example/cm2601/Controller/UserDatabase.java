@@ -60,33 +60,35 @@ public class UserDatabase {
 
             // Parse the entire JSON array
             JSONArray jsonArray = new JSONArray(jsonContent.toString());
+
+            // Iterate through the users array and parse each user
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 String username = jsonObject.getString("username");
                 String password = jsonObject.getString("password");
 
-                // Assuming User has a constructor that takes username and password
+                // Create the user object
                 User user = new User(username, password);
 
-                // Load preferences if available
+                // Handle preferences
                 JSONArray preferencesArray = jsonObject.optJSONArray("preferences");
                 if (preferencesArray != null) {
                     for (int j = 0; j < preferencesArray.length(); j++) {
                         JSONObject preference = preferencesArray.getJSONObject(j);
                         String category = preference.getString("category");
 
-                        // Add the preference to the user object (assuming addPreference accepts category and count)
                         user.addPreference(category);
                     }
                 }
 
-                // Add user to the map
+                // Add the user to the map
                 users.put(username, user);
             }
         } catch (IOException | org.json.JSONException e) {
             System.out.println("Error loading user database: " + e.getMessage());
         }
     }
+
 
 
     private void saveUsers() {
@@ -96,10 +98,16 @@ public class UserDatabase {
             jsonObject.put("username", user.getUsername());
             jsonObject.put("password", user.getPassword());
 
-            // Add preferences to JSON object
-            JSONArray preferencesArray = new JSONArray(user.getPreferences());
+            // Add preferences as a list of JSON objects
+            JSONArray preferencesArray = new JSONArray();
+            for (String preference : user.getPreferences()) {
+                JSONObject preferenceObject = new JSONObject();
+                preferenceObject.put("category", preference);
+                preferencesArray.put(preferenceObject);
+            }
             jsonObject.put("preferences", preferencesArray);
 
+            // Add the user to the JSON array
             jsonArray.put(jsonObject);
         }
 
@@ -109,4 +117,5 @@ public class UserDatabase {
             System.out.println("Error saving user database: " + e.getMessage());
         }
     }
+
 }

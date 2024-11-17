@@ -13,7 +13,7 @@ import java.net.URL;
 
 public class FetchNews {
 
-    private static final String NEWS_API_URL = "https://newsapi.org/v2/everything?q='a'&language=en&pageSize=100&apiKey=6ba0fd8128e843dc9056000e06496c8e";
+    private static final String NEWS_API_URL = "https://newsapi.org/v2/everything?q='a'&language=en&pageSize=20&apiKey=e0d920ae183d4477b6ee87f72a57438c";
 
     public JsonArray fetchNews() {
         try {

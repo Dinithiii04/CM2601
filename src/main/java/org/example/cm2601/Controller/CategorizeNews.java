@@ -22,7 +22,7 @@ import org.example.cm2601.model.UserPreferences;
 public class CategorizeNews {
 
     private static final String HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Yueh-Huan/news-category-classification-distilbert";
-    private static final String HUGGING_FACE_API_KEY = "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";
+    private static final String HUGGING_FACE_API_KEY = "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";
     private static final String OUTPUT_FILE_PATH = "categorized_news.json";
 
     // Method to categorize and save news articles
