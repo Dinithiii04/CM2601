@@ -16,6 +16,9 @@ public class User {
         this.readingHistory = new ArrayList<>();
     }
 
+
+
+
     // Getters
     public String getUsername() {
         return username;

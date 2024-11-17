@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
+
+import org.example.cm2601.model.CurrentUser;
 import org.example.cm2601.model.UserPreferences;
 
 public class CategorizeNews {
@@ -49,7 +51,7 @@ public class CategorizeNews {
             }
         }
 
-        if (categorizedArticles.size() > 0) {
+        if (!categorizedArticles.isEmpty() ) {
             saveToFile(categorizedArticles);
             showNewsTitlesAndSelect(categorizedArticles);
         } else {
@@ -83,6 +85,13 @@ public class CategorizeNews {
 
     // Method to show categorized news titles and allow user selection
     private void showNewsTitlesAndSelect(JsonArray categorizedArticles) {
+
+        // Validate CurrentUser
+        if (CurrentUser.getInstance() == null) {
+            System.out.println("Error: No user is currently logged in. Please log in first.");
+            return;
+        }
+
         System.out.println(" \n -------------------------------------");
         System.out.println("Fetched and Categorized News Titles:");
         System.out.println("------------------------------------- \n");
@@ -109,8 +118,7 @@ public class CategorizeNews {
             System.out.println("Category: " + category);
 
             // Update user preferences with the selected category
-            UserPreferences.savePreferences("dinithi", "dini123", category);
-
+            UserPreferences.savePreferences(CurrentUser.getInstance().getUsername(), category);
             System.out.println("Your preference has been updated with the category: " + category);
         } else {
             System.out.println("Invalid choice.");

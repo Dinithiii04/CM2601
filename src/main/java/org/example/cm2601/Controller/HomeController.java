@@ -69,9 +69,6 @@ public class HomeController {
         } else {
             System.out.println("No articles available. Try adding preferences.");
         }
-
-        // After saving the news, update preferences for the logged-in user
-        UserPreferences.savePreferences(user.getUsername(), user.getPassword(), "sports");  // Ensure category is correctly passed here
     }
 
     private void addPreference(User user) {
@@ -81,7 +78,7 @@ public class HomeController {
         user.addPreference(category); // Add category to the user’s preferences
 
         // Save the updated preferences in the file
-        UserPreferences.savePreferences(user.getUsername(), user.getPassword(), category);
+        UserPreferences.savePreferences(user.getUsername(), category);
         System.out.println("Added " + category + " to your preferences.");
     }
 

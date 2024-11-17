@@ -5,13 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="68927080-c900-4206-a50f-895fe7b13c02" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/model/UserPreferences.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/model/CurrentUser.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/categorized_news.json" beforeDir="false" afterPath="$PROJECT_DIR$/categorized_news.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/cm2601/Controller/CategorizeNews.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/Controller/CategorizeNews.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/cm2601/Controller/HomeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/Controller/HomeController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/cm2601/Controller/LoginController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/Controller/LoginController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/cm2601/Controller/SignupController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/Controller/SignupController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/cm2601/NewsApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/NewsApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/cm2601/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/cm2601/model/UserPreferences.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/cm2601/model/UserPreferences.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/users.json" beforeDir="false" afterPath="$PROJECT_DIR$/users.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -58,6 +61,11 @@
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="org.example.cm2601.model" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

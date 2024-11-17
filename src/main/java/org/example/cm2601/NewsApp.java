@@ -50,7 +50,7 @@ public class NewsApp {
                     break;
                 case 3: // Fetch and categorize news
                     JsonArray articles = fetchNews.fetchNews();
-                    if (articles != null && articles.size() > 0) {
+                    if (articles != null && !articles.isEmpty()) {
                         categorizeNews.categorizeAndSaveNews(articles);
                         System.out.println("News articles fetched and categorized successfully.");
                     } else {
@@ -59,7 +59,7 @@ public class NewsApp {
                     break;
                 case 4: // View saved news titles
                     JsonArray savedArticles = categorizeNews.loadFromFile();
-                    if (savedArticles != null && savedArticles.size() > 0) {
+                    if (savedArticles != null && !savedArticles.isEmpty()) {
                         System.out.println("Saved News Titles:");
                         for (int i = 0; i < savedArticles.size(); i++) {
                             System.out.println((i + 1) + ". " + savedArticles.get(i).getAsJsonObject().get("title").getAsString());

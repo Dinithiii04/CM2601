@@ -8,21 +8,12 @@ public class UserPreferences {
     private static final String USERS_FILE = "users.json";  // Ensure only this file is used
 
     // Method to save or update user preferences in the JSON file
-    public static void savePreferences(String username, String password, String category) {
+    public static void savePreferences(String username, String category) {
         List<JsonObject> allUsers = loadUsers();  // Load existing users from the file
 
         // Find user by username
         JsonObject userJson = findUser(allUsers, username);
 
-        // If the user doesn't exist, create a new user
-        if (userJson == null) {
-            userJson = new JsonObject();
-            userJson.addProperty("username", username);
-            userJson.addProperty("password", password); // Correct password key
-            JsonArray preferences = new JsonArray();  // Empty preferences for new users
-            userJson.add("preferences", preferences); // Correct preferences key
-            allUsers.add(userJson);  // Add the new user to the list
-        }
 
         // Add or update the category in the preferences for the correct user
         JsonArray preferencesArray = userJson.getAsJsonArray("preferences");

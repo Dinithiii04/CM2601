@@ -1,5 +1,6 @@
 package org.example.cm2601.Controller;
 
+import org.example.cm2601.model.CurrentUser;
 import org.example.cm2601.model.User;
 
 import java.util.Scanner;
@@ -15,26 +16,27 @@ public class SignupController {
         Scanner scanner = new Scanner(System.in);
         System.out.println("\n=== Signup ===");
 
-        System.out.print("Enter a username: ");
+        System.out.print("Enter your username: ");
         String username = scanner.nextLine().trim();
 
-        System.out.print("Enter a password: ");
+        if (userDatabase.isUserExists(username)) {
+            System.out.println("Username already exists. Please try logging in.");
+            return null;
+        }
+
+        System.out.print("Enter your password: ");
         String password = scanner.nextLine();
 
-        // Check if user already exists
-        if (userDatabase.isUserExists(username)) {
-            System.out.println("Username already taken. Please try a different one.");
-            return null;
-        }
-
-        // Create and save the new user
         User newUser = new User(username, password);
-        if (userDatabase.addUser(newUser)) {
-            System.out.println("Signup successful! Welcome, " + username);
-            return newUser;
-        } else {
-            System.out.println("Error creating account. Please try again.");
-            return null;
-        }
+        userDatabase.addUser(newUser);
+        System.out.println("Signup successful! Welcome, " + username);
+
+        CurrentUser.setCurrentUser(username); // Set CurrentUser here
+        return newUser;
     }
+
+
 }
+
+
+
