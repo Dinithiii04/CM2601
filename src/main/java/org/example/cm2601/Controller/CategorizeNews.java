@@ -17,7 +17,6 @@ import java.net.URL;
 import java.util.Scanner;
 
 import org.example.cm2601.model.CurrentUser;
-import org.example.cm2601.model.UserPreferences;
 
 public class CategorizeNews {
 
@@ -32,11 +31,14 @@ public class CategorizeNews {
         for (int i = 0; i < articles.size(); i++) {
             JsonObject article = articles.get(i).getAsJsonObject();
             String title = article.get("title").getAsString();
-            String description = article.has("description") && !article.get("description").isJsonNull() ? article.get("description").getAsString() : "";
+            String description = article.has("description") && !article.get("description").isJsonNull() ?
+                    article.get("description").getAsString() : "";
             String url = article.get("url").getAsString();
 
             if (!description.isEmpty()) {
-                String category = classifyTextWithHuggingFace(description);
+                JsonObject classificationResult =  classifyTextWithHuggingFace(description);
+                String category = classificationResult.get("category").getAsString();
+                float score = classificationResult.get("score").getAsFloat();
 
                 // Only proceed if category is valid
                 if (!"Unknown".equals(category)) {
@@ -45,6 +47,7 @@ public class CategorizeNews {
                     categorizedArticle.addProperty("description", description);
                     categorizedArticle.addProperty("url", url);
                     categorizedArticle.addProperty("category", category);
+                    categorizedArticle.addProperty("score", score);
 
                     categorizedArticles.add(categorizedArticle);
                 }
@@ -91,6 +94,7 @@ public class CategorizeNews {
             System.out.println("Error: No user is currently logged in. Please log in first.");
             return;
         }
+        String username = CurrentUser.getInstance().getUsername();
 
         System.out.println(" \n -------------------------------------");
         System.out.println("Fetched and Categorized News Titles:");
@@ -119,7 +123,7 @@ public class CategorizeNews {
             System.out.println("Category: " + category);
 
             // Update user preferences with the selected category
-            UserPreferences.savePreferences(CurrentUser.getInstance().getUsername(), category);
+            UserPreferences.savePreferences(username, category);
             System.out.println("Your preference has been updated with the category: " + category);
         } else {
             System.out.println("Invalid choice.");
@@ -127,7 +131,7 @@ public class CategorizeNews {
     }
 
     // Method to classify text using the Hugging Face API
-    private String classifyTextWithHuggingFace(String text) {
+    private JsonObject classifyTextWithHuggingFace(String text) {
         int maxRetries = 5;
         int retryDelayMs = 5000;
 
@@ -176,10 +180,19 @@ public class CategorizeNews {
                                     }
                                 }
                             }
-                            return bestLabel;
+                            JsonObject result = new JsonObject();
+                            result.addProperty("category", bestLabel);
+                            result.addProperty("score", bestScore);
+                            return result;
+
+
                         }
                     }
-                    return "Unknown";
+                    JsonObject errorResponse = new JsonObject();
+                    errorResponse.addProperty("category", "Unknown");
+                    errorResponse.addProperty("score",0.0f );
+                    return errorResponse;
+
                 } else {
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "utf-8"));
                     StringBuilder errorResponse = new StringBuilder();
@@ -193,12 +206,18 @@ public class CategorizeNews {
                         Thread.sleep(retryDelayMs);
                         continue;
                     }
-                    return "Unknown";
+                    JsonObject errorResult = new JsonObject();
+                    errorResult.addProperty("category", "Unknown");
+                    errorResult.addProperty("score",0.0f );
+                    return errorResult;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        return "Unknown";
+        JsonObject unknownResult = new JsonObject();
+        unknownResult.addProperty("category", "Unknown");
+        unknownResult.addProperty("score",0.0f );
+        return unknownResult;
     }
 }

@@ -1,5 +1,5 @@
 
-package org.example.cm2601.model;
+package org.example.cm2601.Controller;
 
 import com.google.gson.*;
 import java.io.*;
@@ -11,7 +11,6 @@ public class UserPreferences {
     // Method to update user preferences in memory
     public static void savePreferences(String username, String category) {
         // Load all users from the file
-        System.out.println("log : loading user file");
         List<JsonObject> allUsers = loadUsers();
 
 
@@ -32,7 +31,29 @@ public class UserPreferences {
         }
 
         // Update the preferences
-        updateCategory(preferencesArray, category);
+        boolean categoryExists = false;
+        // find category
+        for ( JsonElement element: preferencesArray ){
+            JsonObject preference =  element.getAsJsonObject();
+            if (preference.get("category").getAsString().equals(category)){
+                //increment the count
+                int currentCount = preference.has("count")?preference.get("count").getAsInt(): 0;  //compact if loop
+                preference.addProperty("count", currentCount + 1);
+                categoryExists = true;
+                break;
+            }
+        }
+
+        //if category doesn't exists
+        if(!categoryExists){
+            JsonObject newPreference = new JsonObject();
+            newPreference.addProperty("category", category);
+            newPreference.addProperty("count", 1);
+            preferencesArray.add(newPreference);
+
+        }
+
+
 
         // This step ensures the changes are reflected in the allUsers list
         for (int i = 0; i < allUsers.size(); i++) {
@@ -57,34 +78,31 @@ public class UserPreferences {
         return null;  // Return null if the user is not found
     }
 
-    // Helper method to update or add a category in the preferences array
-    private static void updateCategory(JsonArray preferences, String category) {
-        for (JsonElement element : preferences) {
-            JsonObject preference = element.getAsJsonObject();
-            if (preference.get("category").getAsString().equals(category)) {
-                // Increment the count if the category exists
-                System.out.println(" logging user found: incrementing value ");   //*
-                int currentCount = preference.get("count").getAsInt();
-                preference.addProperty("count", currentCount + 1);
-                return;
-            }
-        }
-        System.out.println("logging : adding new category");  //*
-        // Add a new category if it doesn't exist
-        JsonObject newPreference = new JsonObject();
-        newPreference.addProperty("category", category);
-        newPreference.addProperty("count", 1); // Initialize with a count of 1
-        preferences.add(newPreference);
-    }
 
     // Load users from the JSON file
     private static List<JsonObject> loadUsers() {
         List<JsonObject> users = new ArrayList<>();
+        File file = new File(USERS_FILE);
+        if(!file.exists()){
+            System.out.println("user not found!");
+            return users;
+        }
         try (FileReader reader = new FileReader(USERS_FILE)) {
-            JsonArray jsonArray = JsonParser.parseReader(reader).getAsJsonArray();
+            JsonElement jsonElement = JsonParser.parseReader(reader);
+            if(jsonElement == null || jsonElement.isJsonNull()){
+                System.out.println("user file empty or invalid");
+                return users;
+            }
+            if(!jsonElement.isJsonArray()){
+                System.out.println("invalid json");
+                return users;
+            }
+
+            JsonArray jsonArray = jsonElement.getAsJsonArray();
             for (JsonElement element : jsonArray) {
                 users.add(element.getAsJsonObject());
             }
+
         } catch (IOException e) {
             System.out.println("Error loading users: " + e.getMessage());
         }
