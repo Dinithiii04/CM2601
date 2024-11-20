@@ -30,7 +30,6 @@ public class HomeController {
         while (isRunning) {
             System.out.println("\n=== Welcome to Your Personalized News Feed, " + user.getUsername() + " ===");
             System.out.println("1. Fetch and Save News");
-            System.out.println("2. Add Category to Preferences");
             System.out.println("3. View Reading History");
             System.out.println("4. Logout \n");
 
