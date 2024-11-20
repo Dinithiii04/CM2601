@@ -13,13 +13,21 @@ public class NewsRecommender {
         // Fetch user preferences
         List<Map.Entry<String, Integer>> sortedPreferences = getSortedUserPreferences(username);
 
-        // Separate articles by category
+        // Separate articles by category and sort by score within each category
         Map<String, List<JsonObject>> categorizedMap = new HashMap<>();
         for (int i = 0; i < categorizedArticles.size(); i++) {
             JsonObject article = categorizedArticles.get(i).getAsJsonObject();
             String category = article.get("category").getAsString();
 
             categorizedMap.computeIfAbsent(category, k -> new ArrayList<>()).add(article);
+        }
+
+        // Sort articles within each category by score (descending)
+        for (Map.Entry<String, List<JsonObject>> entry : categorizedMap.entrySet()) {
+            entry.getValue().sort((a, b) -> Float.compare(
+                    b.get("score").getAsFloat(),
+                    a.get("score").getAsFloat()
+            ));
         }
 
         // Build a new sorted JsonArray
@@ -39,16 +47,23 @@ public class NewsRecommender {
             }
         }
 
-        // Add remaining non-recommended articles
-        for (List<JsonObject> remainingArticles : categorizedMap.values()) {
-            for (JsonObject article : remainingArticles) {
-                article.addProperty("recommended", false);
-                sortedArticles.add(article);
-            }
+        // Add remaining non-recommended articles, sorted by score
+        List<JsonObject> remainingArticles = new ArrayList<>();
+        for (List<JsonObject> articles : categorizedMap.values()) {
+            remainingArticles.addAll(articles);
+        }
+        remainingArticles.sort((a, b) -> Float.compare(
+                b.get("score").getAsFloat(),
+                a.get("score").getAsFloat()
+        ));
+        for (JsonObject article : remainingArticles) {
+            article.addProperty("recommended", false);
+            sortedArticles.add(article);
         }
 
         return sortedArticles;
     }
+
 
     // Helper method to get user preferences sorted by count in descending order
     private List<Map.Entry<String, Integer>> getSortedUserPreferences(String username) {
