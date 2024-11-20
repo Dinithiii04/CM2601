@@ -21,6 +21,14 @@
       {
         "category": "IMPACT",
         "count": 1
+      },
+      {
+        "category": "BUSINESS",
+        "count": 1
+      },
+      {
+        "category": "TRAVEL",
+        "count": 1
       }
     ],
     "username": "u1"

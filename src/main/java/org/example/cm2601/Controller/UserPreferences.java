@@ -78,6 +78,22 @@ public class UserPreferences {
         return null;  // Return null if the user is not found
     }
 
+    public static JsonObject getUserPreferences(String username) {
+        // Load all users
+        List<JsonObject> allUsers = loadUsers();
+
+        // Find the user object
+        for (JsonObject user : allUsers) {
+            if (user.get("username").getAsString().equals(username)) {
+                return user;  // Return the user if found
+            }
+        }
+
+        // If the user is not found, return null
+        return null;
+    }
+
+
 
     // Load users from the JSON file
     private static List<JsonObject> loadUsers() {

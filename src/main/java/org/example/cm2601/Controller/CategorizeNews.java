@@ -88,7 +88,6 @@ public class CategorizeNews {
 
     // Method to show categorized news titles and allow user selection
     private void showNewsTitlesAndSelect(JsonArray categorizedArticles) {
-
         // Validate CurrentUser
         if (CurrentUser.getInstance() == null) {
             System.out.println("Error: No user is currently logged in. Please log in first.");
@@ -96,39 +95,63 @@ public class CategorizeNews {
         }
         String username = CurrentUser.getInstance().getUsername();
 
-        System.out.println(" \n -------------------------------------");
-        System.out.println("Fetched and Categorized News Titles:");
-        System.out.println("------------------------------------- \n");
-        for (int i = 0; i < categorizedArticles.size(); i++) {
-            JsonObject article = categorizedArticles.get(i).getAsJsonObject();
-            String title = article.get("title").getAsString();
-            String category = article.get("category").getAsString();
-            System.out.println((i + 1) + ". " + title + "-" + category);
-        }
+        // Use NewsRecommender to reorder articles
+        NewsRecommender recommender = new NewsRecommender();
+        JsonArray recommendedArticles = recommender.recommendNews(categorizedArticles, username);
 
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter the number of the news title you want to view: ");
-        int choice = scanner.nextInt();
+        boolean continueReading = true;
 
-        if (choice >= 1 && choice <= categorizedArticles.size()) {
-            JsonObject selectedArticle = categorizedArticles.get(choice - 1).getAsJsonObject();
-            String title = selectedArticle.get("title").getAsString();
-            String description = selectedArticle.get("description").getAsString();
-            String url = selectedArticle.get("url").getAsString();
-            String category = selectedArticle.get("category").getAsString();
+        while (continueReading) {
+            System.out.println("\n-------------------------------------");
+            System.out.println("Fetched and Categorized News Titles:");
+            System.out.println("-------------------------------------\n");
 
-            System.out.println("\nYou selected: " + title);
-            System.out.println("Description: " + description);
-            System.out.println("URL: " + url);
-            System.out.println("Category: " + category);
+            // Display articles
+            for (int i = 0; i < recommendedArticles.size(); i++) {
+                JsonObject article = recommendedArticles.get(i).getAsJsonObject();
+                String title = article.get("title").getAsString();
+                String category = article.get("category").getAsString();
+                boolean recommended = article.get("recommended").getAsBoolean();
+                System.out.println((i + 1) + ". " + title + " - " + category + (recommended ? " [Recommended]" : ""));
+            }
 
-            // Update user preferences with the selected category
-            UserPreferences.savePreferences(username, category);
-            System.out.println("Your preference has been updated with the category: " + category);
-        } else {
-            System.out.println("Invalid choice.");
+            System.out.print("Enter the number of the news title you want to view: ");
+            int choice = scanner.nextInt();
+
+            if (choice == 0) {
+                System.out.println("Exiting news reading. Returning to main menu...");
+                continueReading = false;
+            } else if (choice >= 1 && choice <= recommendedArticles.size()) {
+                JsonObject selectedArticle = recommendedArticles.get(choice - 1).getAsJsonObject();
+                String title = selectedArticle.get("title").getAsString();
+                String description = selectedArticle.get("description").getAsString();
+                String url = selectedArticle.get("url").getAsString();
+                String category = selectedArticle.get("category").getAsString();
+
+                System.out.println("\nYou selected: " + title);
+                System.out.println("Description: " + description);
+                System.out.println("URL: " + url);
+                System.out.println("Category: " + category);
+
+                // Update user preferences with the selected category
+                UserPreferences.savePreferences(username, category);
+                System.out.println("Your preference has been updated with the category: " + category);
+
+                // Ask if the user wants to read more
+                System.out.print("\nDo you want to read more news? (yes/no): ");
+                String response = scanner.next().trim().toLowerCase();
+
+                if (!response.equals("yes")) {
+                    System.out.println("Exiting news reading. Returning to main menu...");
+                    continueReading = false;
+                }
+            } else {
+                System.out.println("Invalid choice. Please select a valid news title or enter 0 to exit.");
+            }
         }
     }
+
 
     // Method to classify text using the Hugging Face API
     private JsonObject classifyTextWithHuggingFace(String text) {
