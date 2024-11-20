@@ -16,27 +16,18 @@ public class LoginController {
         Scanner scanner = new Scanner(System.in);
         System.out.println("\n=== Login ===");
 
-        // Prompt for userId
-        System.out.print("Enter your user ID: ");
-        String userId = scanner.nextLine().trim();
-
-        // Check if the userId exists
-        if (!userDatabase.isUserExists(userId)) {
-            System.out.println("User ID not found. Please sign up first.");
-            return null;
-        }
-
-        // Retrieve the user by userId
-        User user = userDatabase.getUser(userId);
-
-        // Prompt for username and verify it matches
-        System.out.print("Enter your username: ");
+        // Prompt for username
+        System.out.print("Enter your user Name: ");
         String username = scanner.nextLine().trim();
 
-        if (!user.getUsername().equals(username)) {
-            System.out.println("Username does not match the provided User ID. Please try again.");
+        // Check if the username exists
+        if (!userDatabase.isUserExists(username)) {
+            System.out.println("User name not found. Please sign up first.");
             return null;
         }
+
+        // Retrieve the user by username
+        User user = userDatabase.getUser(username);
 
         // Prompt for password and verify it
         System.out.print("Enter your password: ");
