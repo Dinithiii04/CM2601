@@ -1,21 +1,23 @@
 package org.example.cm2601.model;
 
-public class CurrentUser extends User {
+import java.util.ArrayList;
+import java.util.List;
+
+public class CurrentUser {
     private static CurrentUser instance;
+    private String username;
 
     // Private constructor to prevent direct instantiation
-    private CurrentUser(String userId, String username, String password) {
-        super(userId, username, password);
+    private CurrentUser(String username) {
+        this.username = username;
     }
 
     // Method to set the current user
-    public static void setCurrentUser(String userId, String username, String password) {
+    public static void setCurrentUser(String username) {
         if (instance == null) {
-            instance = new CurrentUser(userId, username, password);
+            instance = new CurrentUser(username);
         } else {
-            instance.setUserId(userId);  // Update userId using setter
-            instance.setUsername(username); // Update username using setter
-            instance.setPassword(password); // Update password using setter
+            instance.username = username;
         }
     }
 
@@ -27,8 +29,21 @@ public class CurrentUser extends User {
         return instance;
     }
 
+    // Getter for username
+    public String getUsername() {
+        return username;
+    }
+
+    // Setter for username
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     // Clear the current user
     public static void clearCurrentUser() {
         instance = null;
     }
 }
+
+
+

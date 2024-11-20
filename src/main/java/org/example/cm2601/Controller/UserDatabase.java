@@ -10,31 +10,31 @@ import java.util.Map;
 
 public class UserDatabase {
     private static final String FILE_PATH = "users.json";
-    private Map<String, User> users = new HashMap<>(); // Map keyed by userId
+    private Map<String, User> users = new HashMap<>();
 
     public UserDatabase() {
         loadUsers();
     }
 
-    public boolean isUserExists(String userId) {
-        return users.containsKey(userId);
+    public boolean isUserExists(String username) {
+        return users.containsKey(username);
     }
 
     public boolean addUser(User user) {
-        if (isUserExists(user.getUserId())) {
-            return false; // userId already exists
+        if (isUserExists(user.getUsername())) {
+            return false; // Username already exists
         }
-        users.put(user.getUserId(), user); // Keyed by userId
+        users.put(user.getUsername(), user);
         saveUsers();
         return true;
     }
 
-    public User getUser(String userId) {
-        return users.get(userId);
+    public User getUser(String username) {
+        return users.get(username);
     }
 
-    public boolean verifyUser(String userId, String password) {
-        User user = users.get(userId);
+    public boolean verifyUser(String username, String password) {
+        User user = users.get(username);
         return user != null && user.getPassword().equals(password);
     }
 
@@ -64,12 +64,11 @@ public class UserDatabase {
             // Iterate through the users array and parse each user
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
-                String userId = jsonObject.getString("userId");
                 String username = jsonObject.getString("username");
                 String password = jsonObject.getString("password");
 
                 // Create the user object
-                User user = new User(userId, username, password);
+                User user = new User(username, password);
 
                 // Handle preferences
                 JSONArray preferencesArray = jsonObject.optJSONArray("preferences");
@@ -82,19 +81,20 @@ public class UserDatabase {
                     }
                 }
 
-                // Add the user to the map, keyed by userId
-                users.put(userId, user);
+                // Add the user to the map
+                users.put(username, user);
             }
         } catch (IOException | org.json.JSONException e) {
             System.out.println("Error loading user database: " + e.getMessage());
         }
     }
 
+
+
     private void saveUsers() {
         JSONArray jsonArray = new JSONArray();
         for (User user : users.values()) {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("userId", user.getUserId()); // Save userId
             jsonObject.put("username", user.getUsername());
             jsonObject.put("password", user.getPassword());
 
@@ -117,4 +117,5 @@ public class UserDatabase {
             System.out.println("Error saving user database: " + e.getMessage());
         }
     }
+
 }

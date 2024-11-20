@@ -9,16 +9,16 @@ public class UserPreferences {
     private static final String USERS_FILE = "users.json";  // Ensure only this file is used
 
     // Method to update user preferences in memory
-    public static void savePreferences(String userId, String category) {
+    public static void savePreferences(String username, String category) {
         // Load all users from the file
         List<JsonObject> allUsers = loadUsers();
 
 
         // Find the user object
-        JsonObject userJson = findUser(allUsers, userId);
+        JsonObject userJson = findUser(allUsers, username);
 
         if (userJson == null) {
-            System.out.println("User not found: " + userId);
+            System.out.println("User not found: " + username);
             return; // Exit if the user is not found
         }
 
@@ -57,7 +57,7 @@ public class UserPreferences {
 
         // This step ensures the changes are reflected in the allUsers list
         for (int i = 0; i < allUsers.size(); i++) {
-            if (allUsers.get(i).get("userId").getAsString().equals(userId)) {
+            if (allUsers.get(i).get("username").getAsString().equals(username)) {
                 allUsers.set(i, userJson);
                 break;
             }
@@ -68,23 +68,23 @@ public class UserPreferences {
         System.out.println("Preferences updated and saved.");
     }
 
-    // Helper method to find a user by userId
-    private static JsonObject findUser(List<JsonObject> users, String userId) {
+    // Helper method to find a user by username
+    private static JsonObject findUser(List<JsonObject> users, String username) {
         for (JsonObject user : users) {
-            if (user.get("userId").getAsString().equals(userId)) {
+            if (user.get("username").getAsString().equals(username)) {
                 return user;  // Return the user if found
             }
         }
         return null;  // Return null if the user is not found
     }
 
-    public static JsonObject getUserPreferences(String userId) {
+    public static JsonObject getUserPreferences(String username) {
         // Load all users
         List<JsonObject> allUsers = loadUsers();
 
         // Find the user object
         for (JsonObject user : allUsers) {
-            if (user.get("userId").getAsString().equals(userId)) {
+            if (user.get("username").getAsString().equals(username)) {
                 return user;  // Return the user if found
             }
         }

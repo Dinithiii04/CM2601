@@ -3,28 +3,18 @@
     "password": "123",
     "preferences": [
       {
-        "category": "TECH"
+        "category": "ENTERTAINMENT",
+        "count": 2
       },
       {
-        "category": "SPORTS"
+        "category": "SCIENCE",
+        "count": 1
+      },
+      {
+        "category": "HOME \u0026 LIVING",
+        "count": 1
       }
     ],
-    "userId": "378e3da2-4ce8-43de-b14a-d73cf7bf8504",
     "username": "u1"
-  },
-  {
-    "password": "234",
-    "preferences": [
-      {
-        "category": "IMPACT",
-        "count": 1
-      },
-      {
-        "category": "BUSINESS",
-        "count": 1
-      }
-    ],
-    "userId": "47cc66ff-f038-45ee-a30e-56fc9c1a2212",
-    "username": "u2"
   }
 ]
