@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.example.cm2601.model.User;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -16,8 +17,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
 
-import org.example.cm2601.model.CurrentUser;
-
 public class CategorizeNews {
 
     private static final String HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Yueh-Huan/news-category-classification-distilbert";
@@ -25,7 +24,7 @@ public class CategorizeNews {
     private static final String OUTPUT_FILE_PATH = "categorized_news.json";
 
     // Method to categorize and save news articles
-    public void categorizeAndSaveNews(JsonArray articles) {
+    public void categorizeAndSaveNews(JsonArray articles, User user) {
         JsonArray categorizedArticles = new JsonArray();
 
         for (int i = 0; i < articles.size(); i++) {
@@ -56,7 +55,8 @@ public class CategorizeNews {
 
         if (!categorizedArticles.isEmpty() ) {
             saveToFile(categorizedArticles);
-            showNewsTitlesAndSelect(categorizedArticles);
+
+            showNewsTitlesAndSelect(categorizedArticles, user);
         } else {
             System.out.println("No valid news articles to save.");
         }
@@ -75,7 +75,7 @@ public class CategorizeNews {
     }
 
     // Method to load saved news articles from a file
-    public JsonArray loadFromFile() {
+    public JsonArray loadFromFile(User user) {
         JsonArray articles = new JsonArray();
         try (BufferedReader reader = new BufferedReader(new FileReader(OUTPUT_FILE_PATH))) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
@@ -87,17 +87,16 @@ public class CategorizeNews {
     }
 
     // Method to show categorized news titles and allow user selection
-    private void showNewsTitlesAndSelect(JsonArray categorizedArticles) {
-        // Validate CurrentUser
-        if (CurrentUser.getInstance() == null) {
-            System.out.println("Error: No user is currently logged in. Please log in first.");
+    private void showNewsTitlesAndSelect(JsonArray categorizedArticles, User user) {
+        if(user == null){
+            System.out.println("no user found");
             return;
         }
-        String username = CurrentUser.getInstance().getUsername();
+
 
         // Use NewsRecommender to reorder articles
         NewsRecommender recommender = new NewsRecommender();
-        JsonArray recommendedArticles = recommender.recommendNews(categorizedArticles, username);
+        JsonArray recommendedArticles = recommender.recommendNews(categorizedArticles, user.getUsername());
 
         Scanner scanner = new Scanner(System.in);
         boolean continueReading = true;
@@ -135,7 +134,7 @@ public class CategorizeNews {
                 System.out.println("Category: " + category);
 
                 // Update user preferences with the selected category
-                UserPreferences.updatePreferences(username, category);
+                UserPreferences.updatePreferences(user.getUsername(), category);
                 System.out.println("Your preference has been updated with the category: " + category);
 
                 // Ask if the user wants to read more

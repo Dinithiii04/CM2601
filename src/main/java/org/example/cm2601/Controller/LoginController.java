@@ -1,6 +1,5 @@
 package org.example.cm2601.Controller;
 
-import org.example.cm2601.model.CurrentUser;
 import org.example.cm2601.model.User;
 
 import java.util.Scanner;
@@ -29,7 +28,6 @@ public class LoginController {
 
         if (userDatabase.verifyUser(username, password)) {
             System.out.println("Login successful! Welcome, " + username);
-            CurrentUser.setCurrentUser(username); // Set CurrentUser here
             return userDatabase.getUser(username);
         } else {
             System.out.println("Invalid password. Please try again.");

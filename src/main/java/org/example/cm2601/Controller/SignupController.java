@@ -1,6 +1,5 @@
 package org.example.cm2601.Controller;
 
-import org.example.cm2601.model.CurrentUser;
 import org.example.cm2601.model.User;
 
 import java.util.Scanner;
@@ -31,7 +30,6 @@ public class SignupController {
         userDatabase.addUser(newUser);
         System.out.println("Signup successful! Welcome, " + username);
 
-        CurrentUser.setCurrentUser(username); // Set CurrentUser here
         return newUser;
     }
 

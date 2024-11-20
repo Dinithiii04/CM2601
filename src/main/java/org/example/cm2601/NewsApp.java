@@ -20,6 +20,7 @@ public class NewsApp {
 
         Scanner scanner = new Scanner(System.in);
         boolean isRunning = true;
+        User currentUser = null;  // keeping track with the logging user
 
         while (isRunning) {
             // Display menu
@@ -36,28 +37,37 @@ public class NewsApp {
 
             switch (option) {
                 case 1: // Login and navigate to home
-                    User user = loginController.login();
-                    if (user != null) {
-                        homeController.showHome(user);
+                    currentUser = loginController.login();
+                    if (currentUser != null) {
+                        homeController.showHome(currentUser);
                     }
                     break;
                 case 2: // Signup and navigate to home
-                    user = signupController.signup();
-                    if (user != null) {
-                        homeController.showHome(user);
+                    currentUser  = signupController.signup();
+                    if (currentUser  != null) {
+                        homeController.showHome(currentUser );
                     }
                     break;
                 case 3: // Fetch and categorize news
+                    if(currentUser == null){
+                        System.out.println("you need to logged into fetch");
+                        break;
+                    }
                     JsonArray articles = fetchNews.fetchNews();
+
                     if (articles != null && !articles.isEmpty()) {
-                        categorizeNews.categorizeAndSaveNews(articles);
+                        categorizeNews.categorizeAndSaveNews(articles, currentUser);
                         System.out.println("News articles fetched and categorized successfully.");
                     } else {
                         System.out.println("No articles fetched.");
                     }
                     break;
                 case 4: // View saved news titles
-                    JsonArray savedArticles = categorizeNews.loadFromFile();
+                    if(currentUser == null){
+                        System.out.println("you need to logged into fetch");
+                        break;
+                    }
+                    JsonArray savedArticles = categorizeNews.loadFromFile(currentUser);
                     if (savedArticles != null && !savedArticles.isEmpty()) {
                         System.out.println("Saved News Titles:");
                         for (int i = 0; i < savedArticles.size(); i++) {
