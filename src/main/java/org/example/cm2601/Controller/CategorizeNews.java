@@ -135,7 +135,7 @@ public class CategorizeNews {
                 System.out.println("Category: " + category);
 
                 // Update user preferences with the selected category
-                UserPreferences.savePreferences(username, category);
+                UserPreferences.updatePreferences(username, category);
                 System.out.println("Your preference has been updated with the category: " + category);
 
                 // Ask if the user wants to read more

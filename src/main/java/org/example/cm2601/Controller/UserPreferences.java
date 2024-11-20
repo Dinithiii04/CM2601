@@ -9,7 +9,7 @@ public class UserPreferences {
     private static final String USERS_FILE = "users.json";  // Ensure only this file is used
 
     // Method to update user preferences in memory
-    public static void savePreferences(String username, String category) {
+    public static void updatePreferences(String username, String category) {
         // Load all users from the file
         List<JsonObject> allUsers = loadUsers();
 

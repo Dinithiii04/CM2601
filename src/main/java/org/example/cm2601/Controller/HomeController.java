@@ -76,7 +76,7 @@ public class HomeController {
         user.addPreference(category); // Add category to the user’s preferences
 
         // Save the updated preferences in the file
-        UserPreferences.savePreferences(user.getUsername(), category);
+        UserPreferences.updatePreferences(user.getUsername(), category);
         System.out.println("Added " + category + " to your preferences.");
     }
 
