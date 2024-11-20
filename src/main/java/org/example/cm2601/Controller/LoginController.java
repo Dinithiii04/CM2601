@@ -16,28 +16,41 @@ public class LoginController {
         Scanner scanner = new Scanner(System.in);
         System.out.println("\n=== Login ===");
 
-        System.out.print("Enter your username: ");
-        String username = scanner.nextLine().trim();
+        // Prompt for userId
+        System.out.print("Enter your user ID: ");
+        String userId = scanner.nextLine().trim();
 
-        if (!userDatabase.isUserExists(username)) {
-            System.out.println("Username not found. Please sign up first.");
+        // Check if the userId exists
+        if (!userDatabase.isUserExists(userId)) {
+            System.out.println("User ID not found. Please sign up first.");
             return null;
         }
 
+        // Retrieve the user by userId
+        User user = userDatabase.getUser(userId);
+
+        // Prompt for username and verify it matches
+        System.out.print("Enter your username: ");
+        String username = scanner.nextLine().trim();
+
+        if (!user.getUsername().equals(username)) {
+            System.out.println("Username does not match the provided User ID. Please try again.");
+            return null;
+        }
+
+        // Prompt for password and verify it
         System.out.print("Enter your password: ");
         String password = scanner.nextLine();
 
-        if (userDatabase.verifyUser(username, password)) {
+        if (user.getPassword().equals(password)) {
             System.out.println("Login successful! Welcome, " + username);
-            CurrentUser.setCurrentUser(username); // Set CurrentUser here
-            return userDatabase.getUser(username);
+
+            // Set CurrentUser with userId, username, and password
+            CurrentUser.setCurrentUser(user.getUserId(), user.getUsername(), user.getPassword());
+            return user;
         } else {
             System.out.println("Invalid password. Please try again.");
             return null;
         }
     }
-
 }
-
-
-

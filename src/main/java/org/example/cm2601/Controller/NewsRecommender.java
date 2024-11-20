@@ -9,9 +9,9 @@ import java.util.*;
 public class NewsRecommender {
 
     // Method to reorder news articles based on user preferences
-    public JsonArray recommendNews(JsonArray categorizedArticles, String username) {
+    public JsonArray recommendNews(JsonArray categorizedArticles, String userId) {
         // Fetch user preferences
-        List<Map.Entry<String, Integer>> sortedPreferences = getSortedUserPreferences(username);
+        List<Map.Entry<String, Integer>> sortedPreferences = getSortedUserPreferences(userId);
 
         // Separate articles by category and sort by score within each category
         Map<String, List<JsonObject>> categorizedMap = new HashMap<>();
@@ -66,9 +66,9 @@ public class NewsRecommender {
 
 
     // Helper method to get user preferences sorted by count in descending order
-    private List<Map.Entry<String, Integer>> getSortedUserPreferences(String username) {
+    private List<Map.Entry<String, Integer>> getSortedUserPreferences(String userId) {
         List<Map.Entry<String, Integer>> sortedPreferences = new ArrayList<>();
-        JsonObject user = UserPreferences.getUserPreferences(username);
+        JsonObject user = UserPreferences.getUserPreferences(userId);
         if (user != null && user.has("preferences")) {
             JsonArray preferencesArray = user.getAsJsonArray("preferences");
             Map<String, Integer> preferenceMap = new HashMap<>();

@@ -93,11 +93,11 @@ public class CategorizeNews {
             System.out.println("Error: No user is currently logged in. Please log in first.");
             return;
         }
-        String username = CurrentUser.getInstance().getUsername();
+        String userId = CurrentUser.getInstance().getUserId();
 
         // Use NewsRecommender to reorder articles
         NewsRecommender recommender = new NewsRecommender();
-        JsonArray recommendedArticles = recommender.recommendNews(categorizedArticles, username);
+        JsonArray recommendedArticles = recommender.recommendNews(categorizedArticles, userId);
 
         Scanner scanner = new Scanner(System.in);
         boolean continueReading = true;
@@ -135,7 +135,7 @@ public class CategorizeNews {
                 System.out.println("Category: " + category);
 
                 // Update user preferences with the selected category
-                UserPreferences.savePreferences(username, category);
+                UserPreferences.savePreferences(userId, category);
                 System.out.println("Your preference has been updated with the category: " + category);
 
                 // Ask if the user wants to read more
