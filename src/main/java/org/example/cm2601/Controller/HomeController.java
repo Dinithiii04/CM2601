@@ -3,7 +3,9 @@ package org.example.cm2601.Controller;
 import com.google.gson.JsonArray;
 import org.example.cm2601.model.User;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class HomeController {
@@ -12,6 +14,9 @@ public class HomeController {
     private SignupController signupController;
     private FetchNews fetchNews;
     private CategorizeNews categorizeNews;
+
+    private Map<String, JsonArray> userArticlesCache = new HashMap<>();
+
 
     public HomeController(UserDatabase userDatabase, LoginController loginController, SignupController signupController, FetchNews fetchNews) {
         this.userDatabase = userDatabase;
@@ -30,7 +35,7 @@ public class HomeController {
 
         while (isRunning) {
             System.out.println("\n=== Welcome to Your Personalized News Feed, " + user.getUsername() + " ===");
-            System.out.println("1. Fetch and Save News");
+            System.out.println("1. Fetch and Read News");
             System.out.println("3. View Reading History");
             System.out.println("4. Logout \n");
 
@@ -49,6 +54,7 @@ public class HomeController {
                     break;
                 case 4:
                     System.out.println("Logging out. Goodbye, " + user.getUsername() + "!");
+                    categorizeNews.deleteUserArticles(user.getUsername()); // Cleanup user articles
                     isRunning = false;
                     break;
                 default:
@@ -60,13 +66,19 @@ public class HomeController {
     private void saveNewsToFile(User user) {
         // Make sure user preferences are updated before saving news
         System.out.println(" \n Fetching and saving articles...  ");
-        JsonArray articlesJsonArray = fetchNews.fetchNews();
+        JsonArray articlesJsonArray = userArticlesCache.getOrDefault(user.getUsername(), null);
+        if (articlesJsonArray == null) {
+            articlesJsonArray = fetchNews.fetchNews();
+            if (articlesJsonArray != null) {
+                userArticlesCache.put(user.getUsername(), articlesJsonArray); // Cache fetched articles
+            }
+        }
 
         if (articlesJsonArray != null) {
             categorizeNews.categorizeAndSaveNews(articlesJsonArray, user); // Save each categorized article to a file individually.
             System.out.println("News saved into the file successfully. \n" ); // Success message moved here
         } else {
-            System.out.println("No articles available. Try adding preferences.");
+            System.out.println("No articles available. Try again later.");
         }
     }
 

@@ -6,7 +6,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.example.cm2601.model.User;
 
 import java.io.BufferedReader;
@@ -64,21 +66,28 @@ public class CategorizeNews {
         }
 
         if (!categorizedArticles.isEmpty()) {
-            saveArticlesToDatabase(categorizedArticles);
+            saveArticlesToDatabase(categorizedArticles, user.getUsername());
             showNewsTitlesAndSelect(categorizedArticles, user);
         } else {
             System.out.println("No valid news articles to save.");
         }
 
     }
+    public void deleteUserArticles(String username) {
+        Bson filter = Filters.eq("username", username);
+        articlesCollection.deleteMany(filter); // Delete all articles associated with the user
+        System.out.println("All articles for user " + username + " have been removed.");
+    }
 
 
-    private void saveArticlesToDatabase(JsonArray categorizedArticles) {
+
+    private void saveArticlesToDatabase(JsonArray categorizedArticles, String username) {
         List<Document> articleDocs = new ArrayList<>();
 
         for (JsonElement element : categorizedArticles) {
             JsonObject articleJson = element.getAsJsonObject();
             Document articleDoc = Document.parse(articleJson.toString());
+            articleDoc.append("username", username); // Associate with the current user
             articleDocs.add(articleDoc);
         }
 
@@ -87,9 +96,9 @@ public class CategorizeNews {
         }
     }
 
-    public JsonArray loadArticlesFromDatabase() {
+    public JsonArray loadArticlesFromDatabase(String username) {
         JsonArray articlesArray = new JsonArray();
-        FindIterable<Document> documents = articlesCollection.find();
+        FindIterable<Document> documents = articlesCollection.find(Filters.eq("username", username)); // Fetch only this user's articles
 
         for (Document doc : documents) {
             JsonObject jsonObject = JsonParser.parseString(doc.toJson()).getAsJsonObject();
@@ -126,7 +135,13 @@ public class CategorizeNews {
                 String title = article.get("title").getAsString();
                 String category = article.get("category").getAsString();
                 boolean recommended = article.get("recommended").getAsBoolean();
-                System.out.println((i + 1) + ". " + title + " - " + category + (recommended ? " [Recommended]" : ""));
+
+                if(title.equals("[Removed]")){
+                    continue;
+                }
+                    System.out.println((i + 1) + ". " + title + " - " + category + (recommended ? " [Recommended]" : ""));
+
+
             }
 
             System.out.print("Enter the number of the news title you want to view: ");

@@ -8,6 +8,7 @@ import java.util.Scanner;
 
 public class NewsApp {
     public static void main(String[] args) {
+        System.setProperty("org.slf4j.simpleLogger.log.org.mongodb.driver", "OFF");
         // Create necessary objects for user management, fetching, categorizing news, and handling home navigation
         UserDatabase userDatabase = new UserDatabase();
 
@@ -27,8 +28,6 @@ public class NewsApp {
             System.out.println("\n=== Personalized News Recommendation System ===");
             System.out.println("1. Login");
             System.out.println("2. Signup");
-            System.out.println("3. Fetch and Categorize News");
-            System.out.println("4. View Saved News Titles");
             System.out.println("5. Exit");
             System.out.print("Select an option: ");
 
@@ -67,7 +66,7 @@ public class NewsApp {
                         System.out.println("You need to be logged in to view saved news titles.");
                         break;
                     }
-                    JsonArray savedArticles = categorizeNews.loadArticlesFromDatabase();
+                    JsonArray savedArticles = categorizeNews.loadArticlesFromDatabase(currentUser.getUsername());
                     if (savedArticles != null && !savedArticles.isEmpty()) {
                         System.out.println("Saved News Titles:");
                         for (int i = 0; i < savedArticles.size(); i++) {
