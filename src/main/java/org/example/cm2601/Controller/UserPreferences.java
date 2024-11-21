@@ -2,8 +2,13 @@
 package org.example.cm2601.Controller;
 
 import com.google.gson.*;
-import java.io.*;
-import java.util.*;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserPreferences {
     private static final String USERS_FILE = "users.json";  // Ensure only this file is used

@@ -1,7 +1,7 @@
 package org.example.cm2601.Controller;
 
-import org.example.cm2601.model.User;
 import com.google.gson.JsonArray;
+import org.example.cm2601.model.User;
 
 import java.util.List;
 import java.util.Scanner;
