@@ -14,9 +14,9 @@ public class NewsApp {
         SignupController signupController = new SignupController(userDatabase);
         LoginController loginController = new LoginController(userDatabase);
         FetchNews fetchNews = new FetchNews();
-        CategorizeNews categorizeNews = new CategorizeNews();
+        CategorizeNews categorizeNews = new CategorizeNews(userDatabase);
 
-        HomeController homeController = new HomeController(userDatabase, loginController, signupController, fetchNews, categorizeNews);
+        HomeController homeController = new HomeController(userDatabase, loginController, signupController, fetchNews);
 
         Scanner scanner = new Scanner(System.in);
         boolean isRunning = true;
@@ -63,11 +63,11 @@ public class NewsApp {
                     }
                     break;
                 case 4: // View saved news titles
-                    if(currentUser == null){
-                        System.out.println("you need to logged into fetch");
+                    if (currentUser == null) {
+                        System.out.println("You need to be logged in to view saved news titles.");
                         break;
                     }
-                    JsonArray savedArticles = categorizeNews.loadFromFile(currentUser);
+                    JsonArray savedArticles = categorizeNews.loadArticlesFromDatabase();
                     if (savedArticles != null && !savedArticles.isEmpty()) {
                         System.out.println("Saved News Titles:");
                         for (int i = 0; i < savedArticles.size(); i++) {

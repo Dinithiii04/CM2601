@@ -1,121 +1,220 @@
 package org.example.cm2601.Controller;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.example.cm2601.model.User;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class UserDatabase {
-    private static final String FILE_PATH = "users.json";
-    private Map<String, User> users = new HashMap<>();
+    private MongoClient mongoClient;
+    private MongoDatabase database;
+    private MongoCollection<Document> usersCollection;
 
     public UserDatabase() {
-        loadUsers();
+        connectToMongoDB();
     }
 
+    private void connectToMongoDB() {
+
+        String connectionString = "mongodb+srv://newsappuser:dinimongo12@newsappcluster.kanzb.mongodb.net/?retryWrites=true&w=majority&appName=NewsAppCluster";
+
+        ConnectionString connString = new ConnectionString(connectionString);
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(connString)
+                .build();
+        mongoClient = MongoClients.create(settings);
+        // Database name
+        database = mongoClient.getDatabase("news_app");
+        // Collection name
+        usersCollection = database.getCollection("users");
+    }
+
+
     public boolean isUserExists(String username) {
-        return users.containsKey(username);
+        Bson filter = Filters.eq("username", username);
+        Document userDoc = usersCollection.find(filter).first();
+        return userDoc != null;
     }
 
     public boolean addUser(User user) {
         if (isUserExists(user.getUsername())) {
             return false; // Username already exists
         }
-        users.put(user.getUsername(), user);
-        saveUsers();
+        Document userDoc = new Document("username", user.getUsername())
+                .append("password", user.getPassword())
+                .append("preferences", new ArrayList<Document>())
+                .append("readingHistory", new ArrayList<String>());
+        usersCollection.insertOne(userDoc);
         return true;
     }
 
+
     public User getUser(String username) {
-        return users.get(username);
+        Bson filter = Filters.eq("username", username);
+        Document userDoc = usersCollection.find(filter).first();
+        if (userDoc != null) {
+            return documentToUser(userDoc);
+        }
+        return null;
     }
 
     public boolean verifyUser(String username, String password) {
-        User user = users.get(username);
+        User user = getUser(username);
         return user != null && user.getPassword().equals(password);
     }
 
-    private void loadUsers() {
-        File file = new File(FILE_PATH);
-        if (!file.exists()) {
-            System.out.println("User database file not found. Starting with an empty database.");
-            return; // No file to load, so start with an empty user map
+    private User documentToUser(Document doc) {
+        String username = doc.getString("username");
+        String password = doc.getString("password");
+        User user = new User(username, password);
+
+        // Preferences
+        List<Document> prefs = (List<Document>) doc.get("preferences");
+        if (prefs != null) {
+            for (Document pref : prefs) {
+                String category = pref.getString("category");
+                int count = pref.getInteger("count", 1);
+                user.getPreferences().put(category, count);
+            }
         }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            StringBuilder jsonContent = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                jsonContent.append(line);
-            }
-
-            // If the file is empty, initialize an empty JSON array
-            if (jsonContent.length() == 0) {
-                System.out.println("User database file is empty. Initializing an empty user list.");
-                return;
-            }
-
-            // Parse the entire JSON array
-            JSONArray jsonArray = new JSONArray(jsonContent.toString());
-
-            // Iterate through the users array and parse each user
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                String username = jsonObject.getString("username");
-                String password = jsonObject.getString("password");
-
-                // Create the user object
-                User user = new User(username, password);
-
-                // Handle preferences
-                JSONArray preferencesArray = jsonObject.optJSONArray("preferences");
-                if (preferencesArray != null) {
-                    for (int j = 0; j < preferencesArray.length(); j++) {
-                        JSONObject preference = preferencesArray.getJSONObject(j);
-                        String category = preference.getString("category");
-
-                        user.addPreference(category);
-                    }
-                }
-
-                // Add the user to the map
-                users.put(username, user);
-            }
-        } catch (IOException | org.json.JSONException e) {
-            System.out.println("Error loading user database: " + e.getMessage());
+        // Reading history
+        List<String> history = (List<String>) doc.get("readingHistory");
+        if (history != null) {
+            user.setReadingHistory(history);
         }
+
+        return user;
+    }
+
+    public void updatePreferences(String username, String category) {
+        Bson filter = Filters.eq("username", username);
+        Document userDoc = usersCollection.find(filter).first();
+
+        if (userDoc == null) {
+            System.out.println("User not found: " + username);
+            return;
+        }
+
+        // Get current preferences
+        List<Document> preferences = (List<Document>) userDoc.get("preferences");
+        if (preferences == null) {
+            preferences = new ArrayList<>();
+        }
+
+        boolean categoryExists = false;
+        for (Document pref : preferences) {
+            if (pref.getString("category").equals(category)) {
+                int count = pref.getInteger("count", 0) + 1;
+                pref.put("count", count);
+                categoryExists = true;
+                break;
+            }
+        }
+
+        if (!categoryExists) {
+            Document newPreference = new Document("category", category).append("count", 1);
+            preferences.add(newPreference);
+        }
+
+        // Update the user's preferences in the database
+        Bson update = Updates.set("preferences", preferences);
+        usersCollection.updateOne(filter, update);
+    }
+    public MongoDatabase getDatabase() {
+        return this.database;
     }
 
 
+//    private void loadUsers() {
+//        File file = new File(FILE_PATH);
+//        if (!file.exists()) {
+//            System.out.println("User database file not found. Starting with an empty database.");
+//            return; // No file to load, so start with an empty user map
+//        }
+//
+//        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+//            StringBuilder jsonContent = new StringBuilder();
+//            String line;
+//            while ((line = reader.readLine()) != null) {
+//                jsonContent.append(line);
+//            }
+//
+//            // If the file is empty, initialize an empty JSON array
+//            if (jsonContent.length() == 0) {
+//                System.out.println("User database file is empty. Initializing an empty user list.");
+//                return;
+//            }
+//
+//            // Parse the entire JSON array
+//            JSONArray jsonArray = new JSONArray(jsonContent.toString());
+//
+//            // Iterate through the users array and parse each user
+//            for (int i = 0; i < jsonArray.length(); i++) {
+//                JSONObject jsonObject = jsonArray.getJSONObject(i);
+//                String username = jsonObject.getString("username");
+//                String password = jsonObject.getString("password");
+//
+//                // Create the user object
+//                User user = new User(username, password);
+//
+//                // Handle preferences
+//                JSONArray preferencesArray = jsonObject.optJSONArray("preferences");
+//                if (preferencesArray != null) {
+//                    for (int j = 0; j < preferencesArray.length(); j++) {
+//                        JSONObject preference = preferencesArray.getJSONObject(j);
+//                        String category = preference.getString("category");
+//
+//                        user.addPreference(category);
+//                    }
+//                }
+//
+//                // Add the user to the map
+//                users.put(username, user);
+//            }
+//        } catch (IOException | org.json.JSONException e) {
+//            System.out.println("Error loading user database: " + e.getMessage());
+//        }
+//    }
 
-    private void saveUsers() {
-        JSONArray jsonArray = new JSONArray();
-        for (User user : users.values()) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("username", user.getUsername());
-            jsonObject.put("password", user.getPassword());
 
-            // Add preferences as a list of JSON objects
-            JSONArray preferencesArray = new JSONArray();
-            for (String preference : user.getPreferences()) {
-                JSONObject preferenceObject = new JSONObject();
-                preferenceObject.put("category", preference);
-                preferencesArray.put(preferenceObject);
-            }
-            jsonObject.put("preferences", preferencesArray);
 
-            // Add the user to the JSON array
-            jsonArray.put(jsonObject);
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            writer.write(jsonArray.toString(4)); // Pretty print with 4 spaces indentation
-        } catch (IOException e) {
-            System.out.println("Error saving user database: " + e.getMessage());
-        }
-    }
+//    private void saveUsers() {
+//        JSONArray jsonArray = new JSONArray();
+//        for (User user : users.values()) {
+//            JSONObject jsonObject = new JSONObject();
+//            jsonObject.put("username", user.getUsername());
+//            jsonObject.put("password", user.getPassword());
+//
+//            // Add preferences as a list of JSON objects
+//            JSONArray preferencesArray = new JSONArray();
+//            for (String preference : user.getPreferences()) {
+//                JSONObject preferenceObject = new JSONObject();
+//                preferenceObject.put("category", preference);
+//                preferencesArray.put(preferenceObject);
+//            }
+//            jsonObject.put("preferences", preferencesArray);
+//
+//            // Add the user to the JSON array
+//            jsonArray.put(jsonObject);
+//        }
+//
+//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+//            writer.write(jsonArray.toString(4)); // Pretty print with 4 spaces indentation
+//        } catch (IOException e) {
+//            System.out.println("Error saving user database: " + e.getMessage());
+//        }
+//    }
 
 }

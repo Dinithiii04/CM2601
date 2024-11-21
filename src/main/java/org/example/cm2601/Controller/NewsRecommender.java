@@ -3,10 +3,20 @@ package org.example.cm2601.Controller;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.example.cm2601.model.User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class NewsRecommender {
+
+    private UserDatabase userDatabase;
+
+    public NewsRecommender(UserDatabase userDatabase) {
+        this.userDatabase = userDatabase;
+    }
 
     // Method to reorder news articles based on user preferences
     public JsonArray recommendNews(JsonArray categorizedArticles, String username) {
@@ -67,23 +77,17 @@ public class NewsRecommender {
 
     // Helper method to get user preferences sorted by count in descending order
     private List<Map.Entry<String, Integer>> getSortedUserPreferences(String username) {
+        User user = userDatabase.getUser(username);
         List<Map.Entry<String, Integer>> sortedPreferences = new ArrayList<>();
-        JsonObject user = UserPreferences.getUserPreferences(username);
-        if (user != null && user.has("preferences")) {
-            JsonArray preferencesArray = user.getAsJsonArray("preferences");
-            Map<String, Integer> preferenceMap = new HashMap<>();
 
-            for (int i = 0; i < preferencesArray.size(); i++) {
-                JsonObject preference = preferencesArray.get(i).getAsJsonObject();
-                String category = preference.get("category").getAsString();
-                int count = preference.get("count").getAsInt();
-                preferenceMap.put(category, count);
-            }
-
-            sortedPreferences.addAll(preferenceMap.entrySet());
+        if (user != null) {
+            Map<String, Integer> preferences = user.getPreferences();
+            sortedPreferences.addAll(preferences.entrySet());
             sortedPreferences.sort((a, b) -> Integer.compare(b.getValue(), a.getValue())); // Sort by count descending
         }
+
         return sortedPreferences;
     }
+
 }
 

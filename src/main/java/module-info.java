@@ -4,6 +4,9 @@ module org.example.cm2601 {
     requires org.json;
     requires java.base;
     requires com.google.gson;
+    requires org.mongodb.driver.sync.client;
+    requires org.mongodb.bson;
+    requires org.mongodb.driver.core;
 
 
 

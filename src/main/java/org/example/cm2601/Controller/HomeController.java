@@ -13,13 +13,14 @@ public class HomeController {
     private FetchNews fetchNews;
     private CategorizeNews categorizeNews;
 
-    public HomeController(UserDatabase userDatabase, LoginController loginController, SignupController signupController, FetchNews fetchNews, CategorizeNews categorizeNews) {
+    public HomeController(UserDatabase userDatabase, LoginController loginController, SignupController signupController, FetchNews fetchNews) {
         this.userDatabase = userDatabase;
         this.loginController = loginController;
         this.signupController = signupController;
         this.fetchNews = fetchNews;
-        this.categorizeNews = categorizeNews;
+        this.categorizeNews = new CategorizeNews(userDatabase);
     }
+
 
     public void showHome(User user) {
         if (user == null) return;
@@ -76,7 +77,7 @@ public class HomeController {
         user.addPreference(category); // Add category to the user’s preferences
 
         // Save the updated preferences in the file
-        UserPreferences.updatePreferences(user.getUsername(), category);
+        userDatabase.updatePreferences(user.getUsername(), category);
         System.out.println("Added " + category + " to your preferences.");
     }
 

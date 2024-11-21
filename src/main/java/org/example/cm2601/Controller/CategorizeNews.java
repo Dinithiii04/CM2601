@@ -1,23 +1,33 @@
 package org.example.cm2601.Controller;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 import org.example.cm2601.model.User;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class CategorizeNews {
+    private UserDatabase userDatabase;
+    private MongoCollection<Document> articlesCollection;
+
+    public CategorizeNews(UserDatabase userDatabase) {
+        this.userDatabase = userDatabase;
+        this.articlesCollection = userDatabase.getDatabase().getCollection("articles");
+    }
+
+
 
     private static final String HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Yueh-Huan/news-category-classification-distilbert";
     private static final String HUGGING_FACE_API_KEY = "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";
@@ -53,38 +63,42 @@ public class CategorizeNews {
             }
         }
 
-        if (!categorizedArticles.isEmpty() ) {
-            saveToFile(categorizedArticles);
-
+        if (!categorizedArticles.isEmpty()) {
+            saveArticlesToDatabase(categorizedArticles);
             showNewsTitlesAndSelect(categorizedArticles, user);
         } else {
             System.out.println("No valid news articles to save.");
         }
+
     }
 
 
-    // Method to save categorized news to a file
-    private void saveToFile(JsonArray categorizedArticles) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE_PATH))) {
-            JsonObject json = new JsonObject();
-            json.add("articles", categorizedArticles);
-            writer.write(json.toString());
-        } catch (IOException e) {
-            System.out.println("Error saving categorized news: " + e.getMessage());
+    private void saveArticlesToDatabase(JsonArray categorizedArticles) {
+        List<Document> articleDocs = new ArrayList<>();
+
+        for (JsonElement element : categorizedArticles) {
+            JsonObject articleJson = element.getAsJsonObject();
+            Document articleDoc = Document.parse(articleJson.toString());
+            articleDocs.add(articleDoc);
+        }
+
+        if (!articleDocs.isEmpty()) {
+            articlesCollection.insertMany(articleDocs);
         }
     }
 
-    // Method to load saved news articles from a file
-    public JsonArray loadFromFile(User user) {
-        JsonArray articles = new JsonArray();
-        try (BufferedReader reader = new BufferedReader(new FileReader(OUTPUT_FILE_PATH))) {
-            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-            articles = json.getAsJsonArray("articles");
-        } catch (IOException e) {
-            System.out.println("Error loading saved news: " + e.getMessage());
+    public JsonArray loadArticlesFromDatabase() {
+        JsonArray articlesArray = new JsonArray();
+        FindIterable<Document> documents = articlesCollection.find();
+
+        for (Document doc : documents) {
+            JsonObject jsonObject = JsonParser.parseString(doc.toJson()).getAsJsonObject();
+            articlesArray.add(jsonObject);
         }
-        return articles;
+
+        return articlesArray;
     }
+
 
     // Method to show categorized news titles and allow user selection
     private void showNewsTitlesAndSelect(JsonArray categorizedArticles, User user) {
@@ -95,7 +109,7 @@ public class CategorizeNews {
 
 
         // Use NewsRecommender to reorder articles
-        NewsRecommender recommender = new NewsRecommender();
+        NewsRecommender recommender = new NewsRecommender(userDatabase);
         JsonArray recommendedArticles = recommender.recommendNews(categorizedArticles, user.getUsername());
 
         Scanner scanner = new Scanner(System.in);
@@ -134,7 +148,7 @@ public class CategorizeNews {
                 System.out.println("Category: " + category);
 
                 // Update user preferences with the selected category
-                UserPreferences.updatePreferences(user.getUsername(), category);
+                userDatabase.updatePreferences(user.getUsername(), category);
                 System.out.println("Your preference has been updated with the category: " + category);
 
                 // Ask if the user wants to read more
