@@ -32,7 +32,7 @@ public class CategorizeNews {
 
 
     private static final String HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Yueh-Huan/news-category-classification-distilbert";
-    private static final String HUGGING_FACE_API_KEY = "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";
+    private static final String HUGGING_FACE_API_KEY = "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";
     private static final String OUTPUT_FILE_PATH = "categorized_news.json";
 
     // Method to categorize and save news articles
@@ -166,11 +166,16 @@ public class CategorizeNews {
                 userDatabase.updatePreferences(user.getUsername(), category);
                 System.out.println("Your preference has been updated with the category: " + category);
 
+                //add article titles to users history
+                userDatabase.addToReadHisotry(user.getUsername(), title);
+                user.addToReadingHistory(title);
+
+
                 // Ask if the user wants to read more
-                System.out.print("\nDo you want to read more news? (yes/no): ");
+                System.out.print("\nDo you want to read more news? (y/n): ");
                 String response = scanner.next().trim().toLowerCase();
 
-                if (!response.equals("yes")) {
+                if (response.equals("n")) {
                     System.out.println("Exiting news reading. Returning to main menu...");
                     continueReading = false;
                 }

@@ -95,11 +95,21 @@ public class HomeController {
 
     private void viewReadingHistory(User user) {
         System.out.println("\n=== Reading History ===");
+        //refresh user data from db
+        User refreshedUser = userDatabase.getUser(user.getUsername());
+        if(refreshedUser == null){
+            System.out.println("error retrieving user data");
+            return;
+        }
+
+
         List<String> history = user.getReadingHistory();
         if (history.isEmpty()) {
             System.out.println("No reading history available.");
         } else {
-            history.forEach(System.out::println);
+            for(int i=0; i< history.size(); i++){
+                System.out.println((i+1) + ". " + history.get(i));
+            }
         }
     }
 }

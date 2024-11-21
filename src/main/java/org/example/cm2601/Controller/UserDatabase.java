@@ -53,8 +53,8 @@ public class UserDatabase {
         }
         Document userDoc = new Document("username", user.getUsername())
                 .append("password", user.getPassword())
-                .append("preferences", new ArrayList<Document>())
-                .append("readingHistory", new ArrayList<String>());
+                .append("preferences", new ArrayList<Document>());
+
         usersCollection.insertOne(userDoc);
         return true;
     }
@@ -134,6 +134,13 @@ public class UserDatabase {
     }
     public MongoDatabase getDatabase() {
         return this.database;
+    }
+
+    public void addToReadHisotry(String username, String articleTitle){
+        Bson filter = Filters.eq("Username", username);
+        Bson update = Updates.push("readingHistory", articleTitle);
+        usersCollection.updateOne(filter, update);
+
     }
 
 
