@@ -26,6 +26,7 @@ public class FetchNews {
             }
             newsReader.close();
 
+            // Parse the response string into a JSON object.
             JsonObject newsJson = JsonParser.parseString(newsResponse.toString()).getAsJsonObject();
             return newsJson.getAsJsonArray("articles");
 

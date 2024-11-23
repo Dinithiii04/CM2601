@@ -13,7 +13,7 @@ public class LoginController {
 
     public User login() {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("\n=== Login ===");
+        System.out.println("\n--- Login ---");
 
         System.out.print("Enter your username: ");
         String username = scanner.nextLine().trim();

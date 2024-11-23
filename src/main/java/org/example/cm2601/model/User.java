@@ -8,14 +8,14 @@ import java.util.Map;
 public class User {
     private String username;
     private String password;
-    private Map<String, Integer> preferences = new HashMap<>(); // Initialize here
-    private List<String> readingHistory = new ArrayList<>();
+    private Map<String, Integer> preferences = new HashMap<>();   //Tracks user preferences for news categories
+    private List<String> readingHistory = new ArrayList<>();     //Stores the titles of articles the user has read
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
-        this.preferences = new HashMap<>();
-        this.readingHistory = new ArrayList<>();
+        this.preferences = new HashMap<>();   //Initialize empty map
+        this.readingHistory = new ArrayList<>();   //Initialize empty array
     }
 
 
@@ -42,6 +42,8 @@ public class User {
         preferences.put(category, preferences.getOrDefault(category, 0) + 1);
     }
 
+
+    //Setters
     public void setPreferences(Map<String, Integer> preferences) {
         this.preferences = preferences;
     }

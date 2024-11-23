@@ -23,12 +23,12 @@ public class NewsRecommender {
         // Fetch user preferences
         List<Map.Entry<String, Integer>> sortedPreferences = getSortedUserPreferences(username);
 
-        // Separate articles by category and sort by score within each category
+        //Separate articles into a map categorized by their "category" property
         Map<String, List<JsonObject>> categorizedMap = new HashMap<>();
         for (int i = 0; i < categorizedArticles.size(); i++) {
             JsonObject article = categorizedArticles.get(i).getAsJsonObject();
             String category = article.get("category").getAsString();
-
+            // Group articles by their category
             categorizedMap.computeIfAbsent(category, k -> new ArrayList<>()).add(article);
         }
 
@@ -50,7 +50,7 @@ public class NewsRecommender {
                 List<JsonObject> articles = categorizedMap.get(preferredCategory);
                 for (JsonObject article : articles) {
                     JsonObject recommendedArticle = article.deepCopy();
-                    recommendedArticle.addProperty("recommended", true);
+                    recommendedArticle.addProperty("recommended", true);  // Mark as recommended
                     sortedArticles.add(recommendedArticle);
                 }
                 categorizedMap.remove(preferredCategory); // Avoid re-adding articles later
@@ -60,10 +60,10 @@ public class NewsRecommender {
         // Add remaining non-recommended articles, sorted by score
         List<JsonObject> remainingArticles = new ArrayList<>();
         for (List<JsonObject> articles : categorizedMap.values()) {
-            remainingArticles.addAll(articles);
+            remainingArticles.addAll(articles);  // Collect articles from categories not in preferences
         }
         remainingArticles.sort((a, b) -> Float.compare(
-                b.get("score").getAsFloat(),
+                b.get("score").getAsFloat(),  // Higher score first
                 a.get("score").getAsFloat()
         ));
         for (JsonObject article : remainingArticles) {
@@ -81,6 +81,7 @@ public class NewsRecommender {
         List<Map.Entry<String, Integer>> sortedPreferences = new ArrayList<>();
 
         if (user != null) {
+            // Get user's preferences as a map of category and count
             Map<String, Integer> preferences = user.getPreferences();
             sortedPreferences.addAll(preferences.entrySet());
             sortedPreferences.sort((a, b) -> Integer.compare(b.getValue(), a.getValue())); // Sort by count descending

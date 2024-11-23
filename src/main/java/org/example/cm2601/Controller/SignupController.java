@@ -13,18 +13,35 @@ public class SignupController {
 
     public User signup() {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("\n=== Signup ===");
+        System.out.println("\n--- Signup ---");
 
-        System.out.print("Enter your username: ");
-        String username = scanner.nextLine().trim();
+        String username;
+        while (true) {
+            System.out.print("Enter your username: ");
+            username = scanner.nextLine().trim();
 
-        if (userDatabase.isUserExists(username)) {
-            System.out.println("Username already exists. Please try logging in.");
-            return null;
+            if (username.length() < 3) {
+                System.out.println("Error: Username must have at least 3 characters.");
+            } else if (!username.matches("[a-zA-Z]+")) {
+                System.out.println("Error: Username must contain only letters.");
+            } else if (userDatabase.isUserExists(username)) {
+                System.out.println("Error: Username already exists. Please try another.");
+            } else {
+                break;
+            }
         }
 
-        System.out.print("Enter your password: ");
-        String password = scanner.nextLine();
+        String password;
+        while (true) {
+            System.out.print("Enter your password: ");
+            password = scanner.nextLine();
+
+            if (password.length() < 5) {
+                System.out.println("Error: Password must have at least 5 characters.");
+            } else {
+                break;
+            }
+        }
 
         User newUser = new User(username, password);
         userDatabase.addUser(newUser);

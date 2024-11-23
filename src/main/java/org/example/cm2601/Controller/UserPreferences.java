@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserPreferences {
-    private static final String USERS_FILE = "users.json";  // Ensure only this file is used
+    private static final String USERS_FILE = "users.json";
 
-    // Method to update user preferences in memory
+    // Update user preferences in memory
     public static void updatePreferences(String username, String category) {
         // Load all users from the file
         List<JsonObject> allUsers = loadUsers();
@@ -30,6 +30,7 @@ public class UserPreferences {
         // Get or initialize the preferences array
         JsonArray preferencesArray = userJson.getAsJsonArray("preferences");
         if (preferencesArray == null) {
+            // Initialize preferences array if not present
             System.out.println("logging: intialise preference array");
             preferencesArray = new JsonArray();
             userJson.add("preferences", preferencesArray); // Initialize preferences array if not present
@@ -49,7 +50,7 @@ public class UserPreferences {
             }
         }
 
-        //if category doesn't exists
+        //if category doesn't exist, add it as a new preference
         if(!categoryExists){
             JsonObject newPreference = new JsonObject();
             newPreference.addProperty("category", category);
@@ -105,20 +106,21 @@ public class UserPreferences {
         List<JsonObject> users = new ArrayList<>();
         File file = new File(USERS_FILE);
         if(!file.exists()){
-            System.out.println("user not found!");
+            System.out.println("user not found!");  // Handle missing file scenario
             return users;
         }
         try (FileReader reader = new FileReader(USERS_FILE)) {
             JsonElement jsonElement = JsonParser.parseReader(reader);
             if(jsonElement == null || jsonElement.isJsonNull()){
-                System.out.println("user file empty or invalid");
+                System.out.println("user file empty or invalid"); // Handle invalid or empty file
                 return users;
             }
             if(!jsonElement.isJsonArray()){
-                System.out.println("invalid json");
+                System.out.println("invalid json"); // Handle invalid or empty file
                 return users;
             }
 
+            // Parse JSON array into a list of JsonObject
             JsonArray jsonArray = jsonElement.getAsJsonArray();
             for (JsonElement element : jsonArray) {
                 users.add(element.getAsJsonObject());

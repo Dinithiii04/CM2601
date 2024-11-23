@@ -33,7 +33,7 @@ public class UserDatabase {
         MongoClientSettings settings = MongoClientSettings.builder()
                 .applyConnectionString(connString)
                 .build();
-        mongoClient = MongoClients.create(settings);
+        mongoClient = MongoClients.create(settings);   // Create MongoDB client
         // Database name
         database = mongoClient.getDatabase("news_app");
         // Collection name
@@ -41,7 +41,7 @@ public class UserDatabase {
     }
 
 
-    public boolean isUserExists(String username) {
+    public boolean isUserExists(String username) {     //Check if a user exists in the database by username
         Bson filter = Filters.eq("username", username);
         Document userDoc = usersCollection.find(filter).first();
         return userDoc != null;
@@ -79,7 +79,7 @@ public class UserDatabase {
         String password = doc.getString("password");
         User user = new User(username, password);
 
-        // Preferences
+        //  load Preferences
         List<Document> prefs = (List<Document>) doc.get("preferences");
         if (prefs != null) {
             for (Document pref : prefs) {
@@ -107,7 +107,7 @@ public class UserDatabase {
             return;
         }
 
-        // Get current preferences
+        // Load and update preferences
         List<Document> preferences = (List<Document>) userDoc.get("preferences");
         if (preferences == null) {
             preferences = new ArrayList<>();
@@ -142,10 +142,5 @@ public class UserDatabase {
         usersCollection.updateOne(filter, update);
 
     }
-
-
-
-
-
 
 }

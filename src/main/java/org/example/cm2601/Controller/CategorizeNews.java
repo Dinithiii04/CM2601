@@ -46,6 +46,7 @@ public class CategorizeNews {
                     article.get("description").getAsString() : "";
             String url = article.get("url").getAsString();
 
+            // Classify the description using Hugging Face API
             if (!description.isEmpty()) {
                 JsonObject classificationResult =  classifyTextWithHuggingFace(description);
                 String category = classificationResult.get("category").getAsString();
@@ -86,7 +87,7 @@ public class CategorizeNews {
 
         for (JsonElement element : categorizedArticles) {
             JsonObject articleJson = element.getAsJsonObject();
-            Document articleDoc = Document.parse(articleJson.toString());
+            Document articleDoc = Document.parse(articleJson.toString());   // Convert JSON to MongoDB Document
             articleDoc.append("username", username); // Associate with the current user
             articleDocs.add(articleDoc);
         }
@@ -117,7 +118,7 @@ public class CategorizeNews {
         }
 
 
-        // Use NewsRecommender to reorder articles
+        // Use NewsRecommender to reorder articles based on user's preferences
         NewsRecommender recommender = new NewsRecommender(userDatabase);
         JsonArray recommendedArticles = recommender.recommendNews(categorizedArticles, user.getUsername());
 
@@ -125,9 +126,9 @@ public class CategorizeNews {
         boolean continueReading = true;
 
         while (continueReading) {
-            System.out.println("\n-------------------------------------");
-            System.out.println("Fetched and Categorized News Titles:");
-            System.out.println("-------------------------------------\n");
+            System.out.println("\n----------------------------------------------------");
+            System.out.println("        Fetched and Categorized News Titles:");
+            System.out.println("----------------------------------------------------\n");
 
             // Display articles
             for (int i = 0; i < recommendedArticles.size(); i++) {
@@ -137,18 +138,29 @@ public class CategorizeNews {
                 boolean recommended = article.get("recommended").getAsBoolean();
 
                 if(title.equals("[Removed]")){
-                    continue;
+                    continue;   //skip removed articles
                 }
                     System.out.println((i + 1) + ". " + title + " - " + category + (recommended ? " [Recommended]" : ""));
 
 
             }
 
-            System.out.print("Enter the number of the news title you want to view: ");
-            int choice = scanner.nextInt();
+            System.out.println(" ");
+            int choice = -1;
+
+            // Validate integer input for news selection
+            while (true) {
+                System.out.print("\n * Enter the number of the news title you want to view: ");
+                try {
+                    choice = Integer.parseInt(scanner.nextLine());
+                    break; // Valid integer input, exit loop
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input. Please enter a valid number.");
+                }
+            }
 
             if (choice == 0) {
-                System.out.println("Exiting news reading. Returning to main menu...");
+                System.out.println("\nExiting news reading. Returning to main menu...");
                 continueReading = false;
             } else if (choice >= 1 && choice <= recommendedArticles.size()) {
                 JsonObject selectedArticle = recommendedArticles.get(choice - 1).getAsJsonObject();
@@ -172,24 +184,32 @@ public class CategorizeNews {
 
 
                 // Ask if the user wants to read more
-                System.out.print("\nDo you want to read more news? (y/n): ");
-                String response = scanner.next().trim().toLowerCase();
+                while (true) {
+                    System.out.print("\nDo you want to read more news? (y/n): ");
+                    String response = scanner.nextLine().trim().toLowerCase();
 
-                if (response.equals("n")) {
-                    System.out.println("Exiting news reading. Returning to main menu...");
-                    continueReading = false;
+                    if (response.equals("y")) {
+                        break; // Continue reading loop
+                    } else if (response.equals("n")) {
+                        System.out.println("Exiting news reading. Returning to main menu...");
+                        continueReading = false;
+                        break;
+                    } else {
+                        System.out.println("Invalid input. Please enter 'y' or 'n'.");
+                    }
                 }
-            } else {
+            }
+            else {
                 System.out.println("Invalid choice. Please select a valid news title or enter 0 to exit.");
             }
         }
     }
 
 
-    // Method to classify text using the Hugging Face API
+    //  Classify text using the Hugging Face API
     private JsonObject classifyTextWithHuggingFace(String text) {
-        int maxRetries = 5;
-        int retryDelayMs = 5000;
+        int maxRetries = 5;  // Max retry attempts for API call
+        int retryDelayMs = 5000;  // Delay between retries
 
         for (int attempt = 0; attempt < maxRetries; attempt++) {
             try {
@@ -224,6 +244,7 @@ public class CategorizeNews {
                             String bestLabel = "Unknown";
                             float bestScore = -1.0f;
 
+                            //Find the best category
                             for (JsonElement element : innerArray) {
                                 if (element.isJsonObject()) {
                                     JsonObject result = element.getAsJsonObject();
@@ -250,6 +271,7 @@ public class CategorizeNews {
                     return errorResponse;
 
                 } else {
+                    //handle API errors
                     BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "utf-8"));
                     StringBuilder errorResponse = new StringBuilder();
                     String errorLine;
@@ -257,6 +279,7 @@ public class CategorizeNews {
                         errorResponse.append(errorLine.trim());
                     }
 
+                    // Retry if the model is loading
                     if (errorResponse.toString().contains("currently loading")) {
                         System.out.println("Model loading, retrying in " + (retryDelayMs / 1000) + " seconds...");
                         Thread.sleep(retryDelayMs);
@@ -271,6 +294,7 @@ public class CategorizeNews {
                 e.printStackTrace();
             }
         }
+        // Return "Unknown" if all retries fail
         JsonObject unknownResult = new JsonObject();
         unknownResult.addProperty("category", "Unknown");
         unknownResult.addProperty("score",0.0f );

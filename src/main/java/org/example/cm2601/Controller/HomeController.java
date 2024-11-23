@@ -9,15 +9,18 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class HomeController {
+    //Dependencies
     private UserDatabase userDatabase;
     private LoginController loginController;
     private SignupController signupController;
     private FetchNews fetchNews;
     private CategorizeNews categorizeNews;
 
+
+    // Caching mechanism to temporarily store fetched articles for users
     private Map<String, JsonArray> userArticlesCache = new HashMap<>();
 
-
+    //composition
     public HomeController(UserDatabase userDatabase, LoginController loginController, SignupController signupController, FetchNews fetchNews) {
         this.userDatabase = userDatabase;
         this.loginController = loginController;
@@ -34,67 +37,78 @@ public class HomeController {
         boolean isRunning = true;
 
         while (isRunning) {
-            System.out.println("\n=== Welcome to Your Personalized News Feed, " + user.getUsername() + " ===");
+            System.out.println("\n--- Welcome to Your Personalized News Feed, " + user.getUsername() + " ---");
             System.out.println("1. Fetch and Read News");
-            System.out.println("3. View Reading History");
-            System.out.println("4. Logout \n");
+            System.out.println("2. View Reading History");
+            System.out.println("3. Logout \n");
 
-            System.out.println(" Choose an option: ");
-            int option = scanner.nextInt();
+            int option = -1; // Initialize with an invalid value
 
+            while (true) {
+                System.out.print("* Choose an option: ");
+                try {
+                    option = Integer.parseInt(scanner.nextLine());
+                    break; // Exit loop if input is valid
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input. Please enter a number.");
+                }
+            }
+
+            // Process menu options
             switch (option) {
                 case 1:
-                    saveNewsToFile(user);  // Make sure the user is passed correctly
+                    saveNewsToFile(user);
                     break;
                 case 2:
-                    addPreference(user);   // Update preferences for the correct user
-                    break;
-                case 3:
                     viewReadingHistory(user);
                     break;
-                case 4:
-                    System.out.println("Logging out. Goodbye, " + user.getUsername() + "!");
-                    categorizeNews.deleteUserArticles(user.getUsername()); // Cleanup user articles
+                case 3:
+                    System.out.println("\nLogging out. Goodbye, " + user.getUsername() + "!");
+                    // Cleanup user-specific articles from memory when logging out
+                    categorizeNews.deleteUserArticles(user.getUsername());
                     isRunning = false;
                     break;
                 default:
-                    System.out.println("Invalid choice. Please select a valid option.");
+                    System.out.println("Invalid choice. Please select a valid option (1, 2, or 3).");
             }
         }
+
     }
 
+    //Fetches news articles for the user and saves them to categorized files.
     private void saveNewsToFile(User user) {
-        // Make sure user preferences are updated before saving news
+
         System.out.println(" \n Fetching and saving articles...  ");
         JsonArray articlesJsonArray = userArticlesCache.getOrDefault(user.getUsername(), null);
         if (articlesJsonArray == null) {
-            articlesJsonArray = fetchNews.fetchNews();
+            articlesJsonArray = fetchNews.fetchNews(); // Fetch articles if not in the cache
             if (articlesJsonArray != null) {
-                userArticlesCache.put(user.getUsername(), articlesJsonArray); // Cache fetched articles
+                userArticlesCache.put(user.getUsername(), articlesJsonArray); // store fetched articles
             }
         }
 
         if (articlesJsonArray != null) {
-            categorizeNews.categorizeAndSaveNews(articlesJsonArray, user); // Save each categorized article to a file individually.
-            System.out.println("News saved into the file successfully. \n" ); // Success message moved here
+            categorizeNews.categorizeAndSaveNews(articlesJsonArray, user);
+            System.out.println("Viewed news save into the database. \n" );
         } else {
             System.out.println("No articles available. Try again later.");
         }
     }
 
+    // Adds a new preference
     private void addPreference(User user) {
         Scanner scanner = new Scanner(System.in);
-        System.out.print("\n Enter a new category to add to your preferences: ");
         String category = scanner.nextLine().trim();
-        user.addPreference(category); // Add category to the user’s preferences
+        user.addPreference(category); // Add category
 
-        // Save the updated preferences in the file
+
         userDatabase.updatePreferences(user.getUsername(), category);
         System.out.println("Added " + category + " to your preferences.");
     }
 
+    // Displays Reading history
     private void viewReadingHistory(User user) {
-        System.out.println("\n=== Reading History ===");
+        System.out.println("\n-------------- Reading History-------------- ");
         //refresh user data from db
         User refreshedUser = userDatabase.getUser(user.getUsername());
         if(refreshedUser == null){
