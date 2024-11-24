@@ -47,7 +47,7 @@ public class UserDatabase {
         return userDoc != null;
     }
 
-    public boolean addUser(User user) {
+    public synchronized boolean addUser(User user) {
         if (isUserExists(user.getUsername())) {
             return false; // Username already exists
         }
@@ -98,7 +98,8 @@ public class UserDatabase {
         return user;
     }
 
-    public void updatePreferences(String username, String category) {
+    // Synchronized method to ensure thread safety when multiple threads try to update preferences
+    public synchronized void updatePreferences(String username, String category) {
         Bson filter = Filters.eq("username", username);
         Document userDoc = usersCollection.find(filter).first();
 

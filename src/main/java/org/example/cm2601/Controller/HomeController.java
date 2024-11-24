@@ -39,7 +39,7 @@ public class HomeController {
         while (isRunning) {
             System.out.println("\n--- Welcome to Your Personalized News Feed, " + user.getUsername() + " ---");
             System.out.println("1. Fetch and Read News");
-            System.out.println("2. View Reading History");
+            System.out.println("2. View Session History");
             System.out.println("3. Logout \n");
 
             int option = -1; // Initialize with an invalid value
@@ -78,7 +78,7 @@ public class HomeController {
     //Fetches news articles for the user and saves them to categorized files.
     private void saveNewsToFile(User user) {
 
-        System.out.println(" \n Fetching and saving articles...  ");
+        System.out.println(" \n Fetching and categorizing articles...  ");
         JsonArray articlesJsonArray = userArticlesCache.getOrDefault(user.getUsername(), null);
         if (articlesJsonArray == null) {
             articlesJsonArray = fetchNews.fetchNews(); // Fetch articles if not in the cache
@@ -89,7 +89,7 @@ public class HomeController {
 
         if (articlesJsonArray != null) {
             categorizeNews.categorizeAndSaveNews(articlesJsonArray, user);
-            System.out.println("Viewed news save into the database. \n" );
+
         } else {
             System.out.println("No articles available. Try again later.");
         }
@@ -108,7 +108,7 @@ public class HomeController {
 
     // Displays Reading history
     private void viewReadingHistory(User user) {
-        System.out.println("\n-------------- Reading History-------------- ");
+        System.out.println("\n-------------- Session History-------------- ");
         //refresh user data from db
         User refreshedUser = userDatabase.getUser(user.getUsername());
         if(refreshedUser == null){

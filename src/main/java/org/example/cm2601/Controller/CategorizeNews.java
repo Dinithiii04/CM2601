@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
@@ -33,7 +32,6 @@ public class CategorizeNews {
 
     private static final String HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Yueh-Huan/news-category-classification-distilbert";
     private static final String HUGGING_FACE_API_KEY = "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";
-    private static final String OUTPUT_FILE_PATH = "categorized_news.json";
 
     // Method to categorize and save news articles
     public void categorizeAndSaveNews(JsonArray articles, User user) {
@@ -81,8 +79,8 @@ public class CategorizeNews {
     }
 
 
-
-    private void saveArticlesToDatabase(JsonArray categorizedArticles, String username) {
+    // Synchronized method to save categorized articles to MongoDB for a user, ensuring thread safety.
+    private synchronized void saveArticlesToDatabase(JsonArray categorizedArticles, String username) {
         List<Document> articleDocs = new ArrayList<>();
 
         for (JsonElement element : categorizedArticles) {
@@ -97,17 +95,6 @@ public class CategorizeNews {
         }
     }
 
-    public JsonArray loadArticlesFromDatabase(String username) {
-        JsonArray articlesArray = new JsonArray();
-        FindIterable<Document> documents = articlesCollection.find(Filters.eq("username", username)); // Fetch only this user's articles
-
-        for (Document doc : documents) {
-            JsonObject jsonObject = JsonParser.parseString(doc.toJson()).getAsJsonObject();
-            articlesArray.add(jsonObject);
-        }
-
-        return articlesArray;
-    }
 
 
     // Method to show categorized news titles and allow user selection

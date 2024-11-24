@@ -19,7 +19,8 @@ public class NewsRecommender {
     }
 
     // Method to reorder news articles based on user preferences
-    public JsonArray recommendNews(JsonArray categorizedArticles, String username) {
+    // Synchronized method to ensure thread safety in concurrent environments
+    public synchronized JsonArray recommendNews(JsonArray categorizedArticles, String username) {
         // Fetch user preferences
         List<Map.Entry<String, Integer>> sortedPreferences = getSortedUserPreferences(username);
 

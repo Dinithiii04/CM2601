@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class User {
     private String username;
     private String password;
-    private Map<String, Integer> preferences = new HashMap<>();   //Tracks user preferences for news categories
+    private Map<String, Integer> preferences = new ConcurrentHashMap<>();   //Tracks user preferences for news categories
     private List<String> readingHistory = new ArrayList<>();     //Stores the titles of articles the user has read
 
     public User(String username, String password) {
@@ -17,8 +18,6 @@ public class User {
         this.preferences = new HashMap<>();   //Initialize empty map
         this.readingHistory = new ArrayList<>();   //Initialize empty array
     }
-
-
 
 
     // Getters
