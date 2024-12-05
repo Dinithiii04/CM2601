@@ -31,7 +31,7 @@ public class CategorizeNews {
 
 
     private static final String HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Yueh-Huan/news-category-classification-distilbert";
-    private static final String HUGGING_FACE_API_KEY = "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";
+    private static final String HUGGING_FACE_API_KEY = "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";
 
     // Method to categorize and save news articles
     public void categorizeAndSaveNews(JsonArray articles, User user) {
